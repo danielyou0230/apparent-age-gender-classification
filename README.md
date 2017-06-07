@@ -14,10 +14,7 @@ Tensorflow     : https://www.tensorflow.org/tutorials/layers <br />
 (to be completed)
 
 ## Function of each code
-ML\_Final\_Project.py <br />
-### Top module for the project.
-data\_conversion.py <br />
-### Convert images to binary data for faster access for TensorFlow.
-Modules.py
-### Modules used throughout the project.
+ML\_Final\_Project.py: Top module for the project. <br />
+data\_conversion.py: Convert images to binary data for faster access for TensorFlow.<br />
+Modules.py: Modules used throughout the project. <br />
 
