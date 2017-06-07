@@ -31,9 +31,9 @@ data\_conversion.py: Convert images to binary data for faster access for TensorF
 Modules.py: Modules used throughout the project. <br />
 
 ## Roadmap:
-(Done) Facial Recognition
-(Done) Data Augmentation
-(Done) Convert to TensorFlow data type
-(In Progress) Implementing CNN with TensorFlow
-(----) Tuning model
-(----) Report_
+(Done) Facial Recognition <br/>
+(Done) Data Augmentation  <br/>
+(Done) Convert to TensorFlow data type <br/>
+(In Progress) Implementing CNN with TensorFlow <br/>
+(----) Tuning model <br/>
+(----) Report <br/>
