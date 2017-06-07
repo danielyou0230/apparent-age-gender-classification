@@ -18,6 +18,7 @@ numTrees = 1000
 minLeafNode = 300
 
 numClass = 8
+
 ##################################################################
 # Preprocessing
 #ml.face_landmark_Preliminary()
