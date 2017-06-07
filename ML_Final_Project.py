@@ -59,3 +59,5 @@ numClass = 8
 ##
 ###ml.evaluate_result(prediction, test_targ, numClass)
 ##ml.evaluate_result(prediction, training_targ, numClass)
+
+
