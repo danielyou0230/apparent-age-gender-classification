@@ -7,5 +7,5 @@ Daniel You, Vivian Chung
 ### Machine Learning Library:
 Tensorflow, Dlib, scikit-learn
 ## Reference:
-Data Conversion: http://blog.csdn.net/u012759136/article/details/52232266 
-Tensorflow     : https://www.tensorflow.org/tutorials/layers
+Data Conversion: http://blog.csdn.net/u012759136/article/details/52232266 <br />
+Tensorflow     : https://www.tensorflow.org/tutorials/layers <br />
