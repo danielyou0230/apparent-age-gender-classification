@@ -4,7 +4,6 @@ import ML_Final_Project_Modules as ml
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 #from sklearn.tree import DecisionTreeClassifier
-#from sklearn.tree import export_graphviz
 import tensorflow as tf
 
 # Parameters
@@ -16,7 +15,6 @@ file_testing_data  = "CSV_Data/testing_data.csv"
 file_testing_targ  = "CSV_Data/testing_target.csv"
 
 numfeatures = 500
-
 numTrees = 1000
 minLeafNode = 300
 
