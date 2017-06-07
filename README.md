@@ -33,6 +33,10 @@ MNIST using TensorFlow <br/>
 http://terrence.logdown.com/posts/1240896-play-tensorflow-mnist-handwriting-recognition <br/>
 Face Landmarks with dlib, Opencv, and Python <br/>
 http://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/ <br/>
+Face Landmarks with dlib, Opencv, and Python <br/>
+http://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/ <br/>
+Dlib Intro. [Chinese] <br/>
+https://chtseng.wordpress.com/2016/12/23/dlib-%E5%A5%BD%E7%94%A8%E7%9A%84%E7%9A%84machine-learning%E5%B7%A5%E5%85%B7-%E4%B8%80/ <br/>
 
 
 ## Function
@@ -51,3 +55,7 @@ Modules.py: Modules used throughout the project. <br/>
 ## Installation Reference
 Dlib <br/>
 http://www.pyimagesearch.com/2017/03/27/how-to-install-dlib/ <br/>
+OpenCV <br/>
+http://www.pyimagesearch.com/2016/12/19/install-opencv-3-on-macos-with-homebrew-the-easy-way/ <br/>
+TensorFlow (build from source) <br/>
+https://www.tensorflow.org/install/install_sources <br/>
