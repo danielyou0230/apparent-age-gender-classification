@@ -3,7 +3,6 @@ import numpy as np
 import ML_Final_Project_Modules as ml
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
-#from sklearn.tree import DecisionTreeClassifier
 import tensorflow as tf
 
 # Parameters
