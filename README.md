@@ -57,3 +57,8 @@ OpenCV <br/>
 http://www.pyimagesearch.com/2016/12/19/install-opencv-3-on-macos-with-homebrew-the-easy-way/ <br/>
 TensorFlow (build from source) <br/>
 https://www.tensorflow.org/install/install_sources <br/>
+
+## Reference for coding
+Convert label to one-hot <br/>
+> label = tf.stack(tf.one\_hot(label-1, nClass)) <br/>
+https://agray3.github.io/2016/11/29/Demystifying-Data-Input-to-TensorFlow-for-Deep-Learning.html <br/>
