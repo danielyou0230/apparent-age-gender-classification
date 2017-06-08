@@ -170,8 +170,11 @@ test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
 # Initializing the variables
 #init = tf.initialize_all_variables()
 init = tf.global_variables_initializer()
+config = tf.ConfigProto()
+config.gpu_options.allow_growth=True
 # Launch the graph
 with tf.Session() as sess:
+	sess = tf.Session(config=config)
 	sess.run(init)
 	threads = tf.train.start_queue_runners(sess=sess)
 	#for i in range(3):
@@ -180,6 +183,7 @@ with tf.Session() as sess:
 	#	print(val.shape, l)
 
 	step = 1
+	prev_loss = 0.
 	# Keep training until reach max iterations
 	while step * batch_size < training_iters:
 		batch_xs, batch_ys = sess.run([batch_img, batch_label])
@@ -193,6 +197,13 @@ with tf.Session() as sess:
 			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 			print "Iter {:7d}, Minibatch Loss = {:8.6f}, Training Accuracy = {:2.2f}%" \
 				  .format(step * batch_size, loss, acc * 100)
+			
+			delta_loss = prev_loss - loss
+			if acc > 0.90 and abs(delta_loss) < 0.03 and step > 10:
+				print "consecutive loss change < 0.03, stopping..."
+				break
+			else:
+				prev_loss = loss
 		step += 1
 	print "Optimization Finished!"
 	# 
