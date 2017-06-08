@@ -39,14 +39,19 @@ Tensorflow, Dlib, scikit-learn
 ## Reference
 Data Conversion  
 http://blog.csdn.net/u012759136/article/details/52232266  
+
 Tensorflow  
 https://www.tensorflow.org/tutorials/layers  
+
 MNIST using TensorFlow  
 http://terrence.logdown.com/posts/1240896-play-tensorflow-mnist-handwriting-recognition  
+
 Face Landmarks with dlib, Opencv, and Python  
 http://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/  
+
 Dlib Intro. [Chinese]  
 https://chtseng.wordpress.com/2016/12/23/dlib-%E5%A5%BD%E7%94%A8%E7%9A%84%E7%9A%84machine-learning%E5%B7%A5%E5%85%B7-%E4%B8%80/  
+
 CNN example reference  
 http://arbu00.blogspot.tw/2017/03/2-tensorflowconvolutional-neural.html  
 
