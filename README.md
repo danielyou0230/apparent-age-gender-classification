@@ -4,15 +4,26 @@
 Machine Learning @ NCTU EE (grad) 2016 Sep. - 2017 June
 
 ## About the Project (from TA's document)
-In this project, you are asked to classify the input photos into 4 age groups and 2 genders. You are free to use any methods, tools, and language to finish this work. <br/>
-If you want to use any work that is not built by you, be sure to specify it in your report. Also, just repeating other people’s work won’t help you get high score in this subject, be sure to include your own idea in this work.  
+In this project, you are asked to classify the input photos into
+4 age groups and 2 genders. You are free to use any methods, tools, 
+and language to finish this work.  
+If you want to use any work that is not built by you, be sure to 
+specify it in your report. Also, just repeating other people’s work 
+won’t help you get high score in this subject, be sure to include 
+your own idea in this work.  
   
 A. Input:  
-The input will be an RGB photo or Gray level photo with different size. The photos above are from the class child, young, adult, and elder, respectively.  
-You are only allowed to use the photos in this dataset. (Data augmentation is permitted) We may randomly pick some team’ s work to retrain it to check if the result is far differed from your submission.  
+The input will be an RGB photo or Gray level photo with different 
+size. The photos above are from the class child, young, adult, and 
+elder, respectively.  
+You are only allowed to use the photos in this dataset. (Data 
+augmentation is permitted) We may randomly pick some team’ s work to 
+retrain it to check if the result is far differed from your submission.  
 
 B. Target  
-For each photos, please classify it into one of the following classes. You can predict age and gender jointly or separately, but the final result need to be one of the classes above.  
+For each photos, please classify it into one of the following classes. 
+You can predict age and gender jointly or separately, but the final 
+result need to be one of the classes above.  
 Class is defined as follows:  
 0: Male Child, 4: Female Child  
 1: Male Young, 5: Female Young  
@@ -46,9 +57,24 @@ Modules.py: Modules used throughout the project.
 (Done) Facial Recognition  
 (Done) Data Augmentation  
 (Done) Convert to TensorFlow data type  
-(In Progress) Implementing CNN with TensorFlow  
-(----) Tuning model  
+(Done) Implementing CNN with TensorFlow  
+(In Progress) Make the model usable
+(----) Further tuning the model (Refine the model)  
 (----) Report  
+
+## Current Progress
+### Working on...
+Make the model usable... :(  
+
+### Issues
+\#1 Load testing data as batch for validation.  
+\#2 Unusable model (Cause UNKNOWN)
+
+### TO-DOs
+1. Parameterized the model  
+2. Reduce training time and computational resources  
+3. Better face recognition  
+4. Find effective data augmentation methods  
 
 ## Installation Reference
 Dlib  

@@ -61,12 +61,13 @@ display_step = 10
 
 # Network Parameters
 n_input = pow(image_size, 2)
-dropout = 0.80 
+dropout = 0.70
 ## Layer parameters
-feature_map = [depth, 32, 64, 1024]
-kernel_size = [10, 10]
+feature_map = [depth, 128, 256, 2048]
+kernel_size = [20, 20]
 # Fully connected inputs
-n_connected = n_input / pow(2, len(kernel_size))
+pool_factor = pow(2, len(kernel_size))
+n_connected = pow(image_size / pool_factor, 2)
 
 # tf Graph input
 #x = tf.placeholder(tf.float32, [None, n_input])
@@ -114,7 +115,7 @@ conv1 = conv2d_relu(x, w_conv1, bias_conv1)
 # Max Pooling (down-sampling)
 conv1 = max_pool(conv1, k=2)
 # Apply Dropout
-conv1 = tf.nn.dropout(conv1,keep_prob)
+conv1 = tf.nn.dropout(conv1, keep_prob)
 
 # Convolution Layer
 conv2 = conv2d_relu(conv1, w_conv2, bias_conv2)
@@ -175,10 +176,10 @@ with tf.Session() as sess:
 			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 			# Calculate batch loss
 			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-			print ("Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}"
-				   .format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc))
+			print "Iter {:7d}, Minibatch Loss = {:8.6f}, Training Accuracy = {:1.5f}" \
+				  .format(step * batch_size, loss, acc)
 		step += 1
-	print ("Optimization Finished!")
+	print "Optimization Finished!"
 	# Calculate accuracy for 256 mnist test images
 	#print ("Testing Accuracy:", 
 	#	   sess.run(accuracy, feed_dict={x: mnist.test.images[:1024], 
