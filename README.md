@@ -78,6 +78,7 @@ Make the model usable... :(
 2. Reduce training time and computational resources  
 3. Better face recognition  
 4. Find effective data augmentation methods  
+5. Increase the amount of data  
 
 ## Installation Reference
 Dlib  
