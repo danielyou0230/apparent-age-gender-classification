@@ -16,7 +16,7 @@ numTrees = 1000
 minLeafNode = 300
 n_classes = 8
 ##################################################################
-def read_and_decode(filename, img_size=256, depth=1):
+def read_and_decode(filename, img_size=128, depth=1):
 	if not filename.endswith('.tfrecords'):
 		print "Invalid file \"{:s}\"".format(filename)
 		return [], []
@@ -51,20 +51,20 @@ def load_tfrecord_batch(filename):
 
 ##################################################################
 # Data properties
-image_size = 256
+image_size = 128
 depth = 1
 # Parameters
 learning_rate = 0.001
 training_iters = 83001 #400000
-batch_size = 50
+batch_size = 25
 display_step = 10
 
 # Network Parameters
 n_input = pow(image_size, 2)
 dropout = 0.9
 ## Layer parameters
-feature_map = [depth, 2048, 1024, 512, 256]
-kernel_size = [32, 32, 32]
+feature_map = [depth, 512, 256, 128]
+kernel_size = [16, 16]
 # Fully connected inputs
 pool_factor = pow(2, len(kernel_size))
 n_connected = pow(image_size / pool_factor, 2)
@@ -96,18 +96,18 @@ w_conv1 = tf.Variable(tf.random_normal([kernel_size[0], kernel_size[0], feature_
 w_conv2 = tf.Variable(tf.random_normal([kernel_size[1], kernel_size[1], feature_map[1], 
 										feature_map[2]])) 
 #
-w_conv3 = tf.Variable(tf.random_normal([kernel_size[2], kernel_size[2], feature_map[2], 
-										feature_map[3]])) 
+#w_conv3 = tf.Variable(tf.random_normal([kernel_size[2], kernel_size[2], feature_map[2], 
+#										feature_map[3]])) 
 # Fully connected Layer
-w_dens1 = tf.Variable(tf.random_normal([n_connected * feature_map[3], 
-										feature_map[4]])) 
+w_dens1 = tf.Variable(tf.random_normal([n_connected * feature_map[2], 
+										feature_map[3]])) 
 # Class Prediction)
-w_out   = tf.Variable(tf.random_normal([feature_map[4], n_classes])) 
+w_out   = tf.Variable(tf.random_normal([feature_map[3], n_classes])) 
 
 bias_conv1 = tf.Variable(tf.random_normal([feature_map[1]]))
 bias_conv2 = tf.Variable(tf.random_normal([feature_map[2]]))
-bias_conv3 = tf.Variable(tf.random_normal([feature_map[3]]))
-bias_dens1 = tf.Variable(tf.random_normal([feature_map[4]]))
+#bias_conv3 = tf.Variable(tf.random_normal([feature_map[3]]))
+bias_dens1 = tf.Variable(tf.random_normal([feature_map[3]]))
 bias_d_out = tf.Variable(tf.random_normal([n_classes]))
 
 # Construct model
@@ -129,15 +129,15 @@ conv2 = max_pool(conv2, k=2)
 conv2 = tf.nn.dropout(conv2, keep_prob)
 
 # Convolution Layer
-conv3 = conv2d_relu(conv2, w_conv3, bias_conv3)
+#conv3 = conv2d_relu(conv2, w_conv3, bias_conv3)
 # Max Pooling (down-sampling)
-conv3 = max_pool(conv3, k=2)
+#conv3 = max_pool(conv3, k=2)
 # Apply Dropout
-conv3 = tf.nn.dropout(conv3, keep_prob)
+#conv3 = tf.nn.dropout(conv3, keep_prob)
 
 # Fully connected layer
 # Reshape conv4 output to fit dense layer input
-dense1 = tf.reshape(conv3, [-1, w_dens1.get_shape().as_list()[0]]) 
+dense1 = tf.reshape(conv2, [-1, w_dens1.get_shape().as_list()[0]]) 
 # Relu activation
 dense1 = tf.nn.relu(tf.add(tf.matmul(dense1, w_dens1), bias_dens1)) 
 # Apply Dropout
