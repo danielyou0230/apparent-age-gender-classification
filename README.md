@@ -61,12 +61,12 @@ https://www.tensorflow.org/install/install_sources <br/>
 ## Reference for coding
 Convert label to one-hot <br/>
 https://agray3.github.io/2016/11/29/Demystifying-Data-Input-to-TensorFlow-for-Deep-Learning.html <br/>
-> label = tf.stack(tf.one\_hot(label-1, nClass)) <br/> <
+> label = tf.stack(tf.one\_hot(label-1, nClass)) <br/> 
 
 Fetch mini-batch from queue
 https://stackoverflow.com/questions/41978221/tensorflow-next-batch-of-data-from-tf-train-shuffle-batch
-> init = tf.global_variables_initializer()
-> with tf.Session() as sess:
->	sess.run(init)
->	threads = tf.train.start_queue_runners(sess=sess)
->   minibatch = sess.run([data, label])
+> init = tf.global_variables_initializer()  
+> with tf.Session() as sess:  
+>	sess.run(init)  
+>	threads = tf.train.start_queue_runners(sess=sess)  
+>   minibatch = sess.run([data, label])  
