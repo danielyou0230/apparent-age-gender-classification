@@ -42,7 +42,9 @@ def read_and_decode(filename, img_size, depth):
 		return img, label
 read_and_decode('test.tfrecords')
 ##################################################################
-
+# Data properties
+image_size = 100
+depth = 1
 # Parameters
 learning_rate = 0.001
 training_iters = 400000
@@ -50,55 +52,63 @@ batch_size = 128
 display_step = 10
  
 # Network Parameters
-n_input = 10000 
+n_input = pow(image_size, 2)
 n_classes = 8
 dropout = 0.80 
+## Layer parameters
+feature_map = [depth, 32, 64, 1024]
+kernel_size = [10, 10]
+# Fully connected inputs
+n_connected = n_input / pow(2, len(kernel_size))
  
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input])
 y = tf.placeholder(tf.float32, [None, n_classes])
-keep_prob = tf.placeholder(tf.float32) #dropout (keep probability)
+keep_prob = tf.placeholder(tf.float32) 
  
 # Create model
 def conv2d(img, w, b):
 	return tf.nn.relu(tf.nn.bias_add\
-					  (tf.nn.conv2d(img, w,\
+					  (tf.nn.conv2d(img, w,\
 									strides=[1, 1, 1, 1],\
 									padding='SAME'),b))
  
 def max_pool(img, k):
 	return tf.nn.max_pool(img, \
-						  ksize=[1, k, k, 1],\
-						  strides=[1, k, k, 1],\
-						  padding='SAME')
+						  ksize=[1, k, k, 1],\
+						  strides=[1, k, k, 1],\
+						  padding='SAME')
  
 # Store layers weight & bias
- # 5x5 conv, 1 input, 32 outputs
-wc1 = tf.Variable(tf.random_normal([5, 5, 1, 32])) 
-# 5x5 conv, 32 inputs, 64 outputs
-wc2 = tf.Variable(tf.random_normal([5, 5, 32, 64])) 
-# fully connected, 7*7*64 inputs, 1024 outputs
-wd1 = tf.Variable(tf.random_normal([7*7*64, 1024])) 
-# 1024 inputs, 10 outputs (class prediction)
-wout = tf.Variable(tf.random_normal([1024, n_classes])) 
+# 5x5 conv, 1 input, 32 outputs (kernels)
+w_conv1 = tf.Variable(tf.random_normal([kernel_size[0], kernel_size[0], feature_map[0], 
+								   feature_map[1]])) 
+#
+w_conv2 = tf.Variable(tf.random_normal([kernel_size[1], kernel_size[1], feature_map[1], 
+								   feature_map[2]])) 
+# Fully connected Layer
+w_dens1 = tf.Variable(tf.random_normal([n_connected * feature_map[2], 
+								   feature_map[3]])) 
+# Class Prediction)
+w_out   = tf.Variable(tf.random_normal([feature_map[3], n_classes])) 
  
-bc1 = tf.Variable(tf.random_normal([32]))
-bc2 = tf.Variable(tf.random_normal([64]))
-bd1 = tf.Variable(tf.random_normal([1024]))
-bout = tf.Variable(tf.random_normal([n_classes]))
+bias_conv1 = tf.Variable(tf.random_normal([feature_map[1]]))
+bias_conv2 = tf.Variable(tf.random_normal([feature_map[2]]))
+bias_dens1 = tf.Variable(tf.random_normal([feature_map[3]]))
+bias_d_out = tf.Variable(tf.random_normal([n_classes]))
  
 # Construct model
-_X = tf.reshape(x, shape=[-1, 28, 28, 1])
+_X = tf.reshape(x, shape=[-1, image_size, image_size, depth])
  
 # Convolution Layer
-conv1 = conv2d(_X,wc1,bc1)
+conv1 = conv2d(_X, w_conv1, bias_conv1)
 # Max Pooling (down-sampling)
 conv1 = max_pool(conv1, k=2)
 # Apply Dropout
 conv1 = tf.nn.dropout(conv1,keep_prob)
  
 # Convolution Layer
-conv2 = conv2d(conv1,wc2,bc2)
+conv2 = conv2d(conv1, w_conv2, bias_conv2)
 # Max Pooling (down-sampling)
 conv2 = max_pool(conv2, k=2)
 # Apply Dropout
@@ -108,12 +118,12 @@ conv2 = tf.nn.dropout(conv2, keep_prob)
 # Reshape conv2 output to fit dense layer input
 dense1 = tf.reshape(conv2, [-1, wd1.get_shape().as_list()[0]]) 
 # Relu activation
-dense1 = tf.nn.relu(tf.add(tf.matmul(dense1, wd1),bd1)) 
+dense1 = tf.nn.relu(tf.add(tf.matmul(dense1, w_dens1), bias_dens1)) 
 # Apply Dropout
 dense1 = tf.nn.dropout(dense1, keep_prob) 
  
 # Output, class prediction
-pred = tf.add(tf.matmul(dense1, wout), bout)
+pred = tf.add(tf.matmul(dense1, w_out), bias_d_out)
  
 #pred = conv_net(x, weights, biases, keep_prob)
 # Define loss and optimizer
@@ -121,7 +131,7 @@ cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=p
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
  
 # Evaluate model
-correct_pred = tf.equal(tf.argmax(pred,1), tf.argmax(y,1))
+correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
  
 # Initializing the variables
@@ -149,5 +159,4 @@ with tf.Session() as sess:
 	print ("Testing Accuracy:", 
 		   sess.run(accuracy, feed_dict={x: mnist.test.images[:1024], 
 										 y: mnist.test.labels[:1024], keep_prob: 1.}))
-
 
