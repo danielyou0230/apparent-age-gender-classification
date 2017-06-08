@@ -63,7 +63,7 @@ display_step = 10
 n_input = pow(image_size, 2)
 dropout = 0.9
 ## Layer parameters
-feature_map = [depth, 512, 256, 128]
+feature_map = [depth, 256, 128, 64]
 kernel_size = [16, 16]
 # Fully connected inputs
 pool_factor = pow(2, len(kernel_size))
@@ -199,7 +199,7 @@ with tf.Session() as sess:
 				  .format(step * batch_size, loss, acc * 100)
 			
 			delta_loss = prev_loss - loss
-			if acc > 0.90 and abs(delta_loss) < 0.03 and step > 10:
+			if acc > 0.85 and abs(delta_loss) < 0.03 and step > 10:
 				print "consecutive loss change < 0.03, stopping..."
 				break
 			else:

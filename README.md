@@ -129,6 +129,13 @@ Fetch mini-batch from queue
 https://stackoverflow.com/questions/41978221/tensorflow-next-batch-of-data-from-tf-train-shuffle-batch  
 > init = tf.global_variables_initializer()  
 > with tf.Session() as sess:  
->&nbsp;&nbsp;&nbsp;&nbsp;sess.run(init)  
->&nbsp;&nbsp;&nbsp;&nbsp;threads = tf.train.start_queue_runners(sess=sess)  
->&nbsp;&nbsp;&nbsp;&nbsp;minibatch = sess.run([data, label])  
+> &nbsp;&nbsp;&nbsp;&nbsp;sess.run(init)  
+> &nbsp;&nbsp;&nbsp;&nbsp;threads = tf.train.start_queue_runners(sess=sess)  
+> &nbsp;&nbsp;&nbsp;&nbsp;minibatch = sess.run([data, label])   
+
+Release GPU memory after computation  
+https://github.com/tensorflow/tensorflow/issues/1578  
+> config = tf.ConfigProto()  
+> config.gpu_options.allow_growth=True  
+> with tf.Session() as sess:  
+> &nbsp;&nbsp;&nbsp;&nbsp;sess = tf.Session(config=config)  
