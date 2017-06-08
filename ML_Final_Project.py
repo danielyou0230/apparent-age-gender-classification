@@ -16,7 +16,7 @@ numTrees = 1000
 minLeafNode = 300
 n_classes = 8
 ##################################################################
-def read_and_decode(filename, img_size=100, depth=1):
+def read_and_decode(filename, img_size=256, depth=1):
 	if not filename.endswith('.tfrecords'):
 		print "Invalid file \"{:s}\"".format(filename)
 		return [], []
@@ -36,7 +36,7 @@ def read_and_decode(filename, img_size=100, depth=1):
 		# Normalize the image
 		img = tf.cast(img, tf.float32) * (1. / 255) - 0.5
 		label = tf.cast(features['label'], tf.int32)
-		label_onehot = tf.stack(tf.one_hot(label - 1, n_classes))
+		label_onehot = tf.stack(tf.one_hot(label, n_classes))
 		return img, label_onehot
 #read_and_decode('test.tfrecords')
 
@@ -51,20 +51,20 @@ def load_tfrecord_batch(filename):
 
 ##################################################################
 # Data properties
-image_size = 100
+image_size = 256
 depth = 1
 # Parameters
 learning_rate = 0.001
-training_iters = 400000
-batch_size = 100
+training_iters = 83001 #400000
+batch_size = 50
 display_step = 10
 
 # Network Parameters
 n_input = pow(image_size, 2)
-dropout = 0.70
+dropout = 0.9
 ## Layer parameters
-feature_map = [depth, 128, 256, 2048]
-kernel_size = [20, 20]
+feature_map = [depth, 2048, 1024, 512, 256]
+kernel_size = [32, 32, 32]
 # Fully connected inputs
 pool_factor = pow(2, len(kernel_size))
 n_connected = pow(image_size / pool_factor, 2)
@@ -95,15 +95,19 @@ w_conv1 = tf.Variable(tf.random_normal([kernel_size[0], kernel_size[0], feature_
 #
 w_conv2 = tf.Variable(tf.random_normal([kernel_size[1], kernel_size[1], feature_map[1], 
 										feature_map[2]])) 
-# Fully connected Layer
-w_dens1 = tf.Variable(tf.random_normal([n_connected * feature_map[2], 
+#
+w_conv3 = tf.Variable(tf.random_normal([kernel_size[2], kernel_size[2], feature_map[2], 
 										feature_map[3]])) 
+# Fully connected Layer
+w_dens1 = tf.Variable(tf.random_normal([n_connected * feature_map[3], 
+										feature_map[4]])) 
 # Class Prediction)
-w_out   = tf.Variable(tf.random_normal([feature_map[3], n_classes])) 
+w_out   = tf.Variable(tf.random_normal([feature_map[4], n_classes])) 
 
 bias_conv1 = tf.Variable(tf.random_normal([feature_map[1]]))
 bias_conv2 = tf.Variable(tf.random_normal([feature_map[2]]))
-bias_dens1 = tf.Variable(tf.random_normal([feature_map[3]]))
+bias_conv3 = tf.Variable(tf.random_normal([feature_map[3]]))
+bias_dens1 = tf.Variable(tf.random_normal([feature_map[4]]))
 bias_d_out = tf.Variable(tf.random_normal([n_classes]))
 
 # Construct model
@@ -124,9 +128,16 @@ conv2 = max_pool(conv2, k=2)
 # Apply Dropout
 conv2 = tf.nn.dropout(conv2, keep_prob)
 
+# Convolution Layer
+conv3 = conv2d_relu(conv2, w_conv3, bias_conv3)
+# Max Pooling (down-sampling)
+conv3 = max_pool(conv3, k=2)
+# Apply Dropout
+conv3 = tf.nn.dropout(conv3, keep_prob)
+
 # Fully connected layer
-# Reshape conv2 output to fit dense layer input
-dense1 = tf.reshape(conv2, [-1, w_dens1.get_shape().as_list()[0]]) 
+# Reshape conv4 output to fit dense layer input
+dense1 = tf.reshape(conv3, [-1, w_dens1.get_shape().as_list()[0]]) 
 # Relu activation
 dense1 = tf.nn.relu(tf.add(tf.matmul(dense1, w_dens1), bias_dens1)) 
 # Apply Dropout
@@ -152,6 +163,10 @@ batch_img, batch_label = tf.train.shuffle_batch([img, label],
 												allow_smaller_final_batch=True)
 # Load testing data
 t_img, t_label = read_and_decode("test.tfrecords")
+test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
+											 batch_size=400, capacity=400,
+											 min_after_dequeue=0,
+											 allow_smaller_final_batch=True)
 # Initializing the variables
 #init = tf.initialize_all_variables()
 init = tf.global_variables_initializer()
@@ -176,12 +191,13 @@ with tf.Session() as sess:
 			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 			# Calculate batch loss
 			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-			print "Iter {:7d}, Minibatch Loss = {:8.6f}, Training Accuracy = {:1.5f}" \
-				  .format(step * batch_size, loss, acc)
+			print "Iter {:7d}, Minibatch Loss = {:8.6f}, Training Accuracy = {:2.2f}%" \
+				  .format(step * batch_size, loss, acc * 100)
 		step += 1
 	print "Optimization Finished!"
-	# Calculate accuracy for 256 mnist test images
-	#print ("Testing Accuracy:", 
-	#	   sess.run(accuracy, feed_dict={x: mnist.test.images[:1024], 
-	#									 y: mnist.test.labels[:1024], keep_prob: 1.}))
+	# 
+	batch_tx, batch_ly = sess.run([test_img, test_lbl])
+	print "size of test{:s}".format(batch_tx.shape)
+	print ("Testing Accuracy:", 
+		   sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.}))
 

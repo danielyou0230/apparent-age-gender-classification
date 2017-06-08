@@ -11,7 +11,7 @@ gender = ['male', 'female']
 
 #
 def _int64_feature(value):
-	return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+	return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 def _bytes_feature(value):
 	return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -31,6 +31,7 @@ def data_converter(path, tf_data, verbose):
 					if itr_file.endswith('.jpg'):
 						img_path = current_path + itr_file
 						img = Image.open(img_path)
+						img = img.resize((256, 256))
 						img_raw = img.tobytes()
 						# stream data to the converter
 						example = tf.train.Example(features=tf.train.Features(
