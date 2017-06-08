@@ -83,11 +83,13 @@ Make the model usable... :(
 ## Easy git script
 Script name: routine  
 How-to:  
-1. run the file as bash  
+Method 1. Run the file as bash  
 > sh routine  
-2. run the script as executable  
+
+Method 2. Run the script as executable  
 (required step, run the command just once when moving the file across machines)  
 > chomod 777 routine  
+
 (execute step)  
 > ./routine  
 
