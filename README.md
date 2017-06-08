@@ -80,6 +80,27 @@ Make the model usable... :(
 4. Find effective data augmentation methods  
 5. Increase the amount of data  
 
+## Easy git script
+Script name: routine  
+How-to:  
+1. run the file as bash  
+> sh routine  
+2. run the script as executable  
+(required step, run the command just once when moving the file across machines)  
+> chomod 777 routine  
+(execute step)  
+> ./routine  
+
+Usage:  
+1. Just update files that already exist.  
+Commit message: "routinely commit"
+> ./routine  
+2. Add one or multiple new files to the project.  
+Commit message: "File(s): [list\_of\_files] added to the project"  
+> ./routine [list\_of\_files]  
+example:  
+> ./routine file1 file2 
+
 ## Installation Reference
 Dlib  
 http://www.pyimagesearch.com/2017/03/27/how-to-install-dlib/  
