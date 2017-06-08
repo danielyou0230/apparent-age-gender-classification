@@ -50,11 +50,11 @@ https://chtseng.wordpress.com/2016/12/23/dlib-%E5%A5%BD%E7%94%A8%E7%9A%84%E7%9A%
 CNN example reference  
 http://arbu00.blogspot.tw/2017/03/2-tensorflowconvolutional-neural.html  
 
-
-## Function
+## About the codes
 ML_Final_Project.py: Top module for the project.  
-data_conversion.py: Convert images to binary data for faster access for TensorFlow.  
-Modules.py: Modules used throughout the project.  
+data_conversion.py : Convert images to binary data for faster access for TensorFlow.  
+Modules.py         : Modules used throughout the project.  
+pending_code.py    : Codes that might be added to the project.  
 
 ## Roadmap
 (Done) Facial Recognition  
