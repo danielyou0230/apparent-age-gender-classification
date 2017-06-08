@@ -95,9 +95,11 @@ Usage:
 1. Just update files that already exist.  
 Commit message: "routinely commit"
 > ./routine  
+
 2. Add one or multiple new files to the project.  
 Commit message: "File(s): [list\_of\_files] added to the project"  
 > ./routine [list\_of\_files]  
+
 example:  
 > ./routine file1 file2 
 
