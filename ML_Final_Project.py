@@ -14,9 +14,7 @@ file_testing_targ  = "CSV_Data/testing_target.csv"
 numfeatures = 500
 numTrees = 1000
 minLeafNode = 300
-
-numClass = 8
-
+n_classes = 8
 ##################################################################
 def read_and_decode(filename, img_size=100, depth=1):
 	if not filename.endswith('.tfrecords'):
@@ -38,8 +36,8 @@ def read_and_decode(filename, img_size=100, depth=1):
 		# Normalize the image
 		img = tf.cast(img, tf.float32) * (1. / 255) - 0.5
 		label = tf.cast(features['label'], tf.int32)
-
-		return img, label
+		label_onehot = tf.stack(tf.one_hot(label - 1, n_classes))
+		return img, label_onehot
 #read_and_decode('test.tfrecords')
 
 def load_tfrecord_batch(filename):
@@ -50,6 +48,7 @@ def load_tfrecord_batch(filename):
 		label = example.features.feature['label'].int64_list.value
 		print image
 		print label
+
 ##################################################################
 # Data properties
 image_size = 100
@@ -62,7 +61,6 @@ display_step = 10
 
 # Network Parameters
 n_input = pow(image_size, 2)
-n_classes = 8
 dropout = 0.80 
 ## Layer parameters
 feature_map = [depth, 32, 64, 1024]
@@ -71,16 +69,17 @@ kernel_size = [10, 10]
 n_connected = n_input / pow(2, len(kernel_size))
 
 # tf Graph input
-x = tf.placeholder(tf.float32, [None, n_input])
+#x = tf.placeholder(tf.float32, [None, n_input])
+x = tf.placeholder(tf.float32, [None, image_size, image_size, depth])
 y = tf.placeholder(tf.float32, [None, n_classes])
 keep_prob = tf.placeholder(tf.float32) 
 
 # Create model
-def conv2d(img, w, b):
+def conv2d_relu(img, w, b):
 	return tf.nn.relu(tf.nn.bias_add\
 					  (tf.nn.conv2d(img, w,\
 									strides=[1, 1, 1, 1],\
-									padding='SAME'),b))
+									padding='SAME'), b))
 
 def max_pool(img, k):
 	return tf.nn.max_pool(img, \
@@ -91,13 +90,13 @@ def max_pool(img, k):
 # Store layers weight & bias
 # 5x5 conv, 1 input, 32 outputs (kernels)
 w_conv1 = tf.Variable(tf.random_normal([kernel_size[0], kernel_size[0], feature_map[0], 
-								   feature_map[1]])) 
+										feature_map[1]])) 
 #
 w_conv2 = tf.Variable(tf.random_normal([kernel_size[1], kernel_size[1], feature_map[1], 
-								   feature_map[2]])) 
+										feature_map[2]])) 
 # Fully connected Layer
 w_dens1 = tf.Variable(tf.random_normal([n_connected * feature_map[2], 
-								   feature_map[3]])) 
+										feature_map[3]])) 
 # Class Prediction)
 w_out   = tf.Variable(tf.random_normal([feature_map[3], n_classes])) 
 
@@ -107,17 +106,18 @@ bias_dens1 = tf.Variable(tf.random_normal([feature_map[3]]))
 bias_d_out = tf.Variable(tf.random_normal([n_classes]))
 
 # Construct model
-_X = tf.reshape(x, shape=[-1, image_size, image_size, depth])
+#_X = tf.reshape(x, shape=[-1, image_size, image_size, depth])
 
 # Convolution Layer
-conv1 = conv2d(_X, w_conv1, bias_conv1)
+#conv1 = conv2d_relu(_X, w_conv1, bias_conv1)
+conv1 = conv2d_relu(x, w_conv1, bias_conv1)
 # Max Pooling (down-sampling)
 conv1 = max_pool(conv1, k=2)
 # Apply Dropout
 conv1 = tf.nn.dropout(conv1,keep_prob)
 
 # Convolution Layer
-conv2 = conv2d(conv1, w_conv2, bias_conv2)
+conv2 = conv2d_relu(conv1, w_conv2, bias_conv2)
 # Max Pooling (down-sampling)
 conv2 = max_pool(conv2, k=2)
 # Apply Dropout

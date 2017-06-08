@@ -10,6 +10,12 @@ age = ['child', 'young', 'adult', 'elder']
 gender = ['male', 'female']
 
 #
+def _int64_feature(value):
+	return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+def _bytes_feature(value):
+	return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
 def data_converter(path, tf_data, verbose):
 	with tf.python_io.TFRecordWriter(tf_data) as converter:
 		for idx_age, itr_age in enumerate(age):
@@ -25,15 +31,13 @@ def data_converter(path, tf_data, verbose):
 					if itr_file.endswith('.jpg'):
 						img_path = current_path + itr_file
 						img = Image.open(img_path)
-						# convert to tf format
-						#dic_label = tf.train.Int64List(value=class_label)
-						#dic_data  = tf.train.BytesList(value=img.tobytes())
+						img_raw = img.tobytes()
 						# stream data to the converter
 						example = tf.train.Example(features=tf.train.Features(
 						feature=
 						{ 
-							"label"  : tf.train.Feature(int64_list=tf.train.Int64List(value=[class_label])),
-							"img_raw": tf.train.Feature(bytes_list=tf.train.BytesList(value=[img.tobytes()]))
+							"label"  : _int64_feature(class_label),
+							"img_raw": _bytes_feature(img_raw)
 						} ))
 						converter.write(example.SerializeToString())
 					else:
