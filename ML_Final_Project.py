@@ -180,7 +180,7 @@ with tf.Session() as sess:
 		step += 1
 	print ("Optimization Finished!")
 	# Calculate accuracy for 256 mnist test images
-	print ("Testing Accuracy:", 
-		   sess.run(accuracy, feed_dict={x: mnist.test.images[:1024], 
-										 y: mnist.test.labels[:1024], keep_prob: 1.}))
+	#print ("Testing Accuracy:", 
+	#	   sess.run(accuracy, feed_dict={x: mnist.test.images[:1024], 
+	#									 y: mnist.test.labels[:1024], keep_prob: 1.}))
 
