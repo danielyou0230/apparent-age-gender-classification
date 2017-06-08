@@ -41,6 +41,15 @@ def read_and_decode(filename, img_size=100, depth=1):
 
 		return img, label
 #read_and_decode('test.tfrecords')
+
+def load_tfrecord_batch(filename):
+	for serialized_example in tf.python_io.tf_record_iterator(filename):
+		example = tf.train.Example()
+		example.ParseFromString(serialized_example)
+		image = example.features.feature['img_raw'].bytes_list.value
+		label = example.features.feature['label'].int64_list.value
+		print image
+		print label
 ##################################################################
 # Data properties
 image_size = 100
@@ -157,14 +166,15 @@ with tf.Session() as sess:
 	step = 1
 	# Keep training until reach max iterations
 	while step * batch_size < training_iters:
+		batch_xs, batch_ys = sess.run([batch_img, batch_label])
 		#batch_xs, batch_ys = mnist.train.next_batch(batch_size)########
 		# Fit training using batch data
-		sess.run(optimizer, feed_dict={x: batch_img, y: batch_label, keep_prob: dropout})
+		sess.run(optimizer, feed_dict={x: batch_xs, y: batch_ys, keep_prob: dropout})
 		if step % display_step == 0:
 			# Calculate batch accuracy
-			acc = sess.run(accuracy, feed_dict={x: batch_img, y: batch_label, keep_prob: 1.})
+			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 			# Calculate batch loss
-			loss = sess.run(cost, feed_dict={x: batch_img, y: batch_label, keep_prob: 1.})
+			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 			print ("Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}"
 				   .format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc))
 		step += 1
