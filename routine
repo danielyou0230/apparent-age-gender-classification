@@ -1,0 +1,10 @@
+# bash for simple git command
+if [ -z "$@" ]; then
+	git commit -a -m "routinely commit"
+else
+	git add $@ 
+	git commit -m "File(s): $@ added to the project"
+	echo "$@ added to the project"
+fi
+
+git push
