@@ -47,6 +47,9 @@ Face Landmarks with dlib, Opencv, and Python
 http://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/  
 Dlib Intro. [Chinese]  
 https://chtseng.wordpress.com/2016/12/23/dlib-%E5%A5%BD%E7%94%A8%E7%9A%84%E7%9A%84machine-learning%E5%B7%A5%E5%85%B7-%E4%B8%80/  
+CNN example reference  
+http://arbu00.blogspot.tw/2017/03/2-tensorflowconvolutional-neural.html  
+
 
 ## Function
 ML_Final_Project.py: Top module for the project.  
@@ -58,7 +61,7 @@ Modules.py: Modules used throughout the project.
 (Done) Data Augmentation  
 (Done) Convert to TensorFlow data type  
 (Done) Implementing CNN with TensorFlow  
-(In Progress) Make the model usable
+(In Progress) Make the model usable  
 (----) Further tuning the model (Refine the model)  
 (----) Report  
 
