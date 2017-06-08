@@ -81,20 +81,20 @@ Make the model usable... :(
 5. Increase the amount of data  
 
 ## Easy git script  
-###Script name: 
+### Script name: 
 routine  
-###How-to:  
-####Method 1. Run the file as bash  
+### How-to:  
+#### Method 1. Run the file as bash  
 > sh routine  
 
-####Method 2. Run the script as executable  
+#### Method 2. Run the script as executable  
 (required step, run the command just once when moving the file across machines)  
 > chomod 777 routine  
 
 (execute step)  
 > ./routine  
 
-###Usage:  
+### Usage:  
 1. Just update files that already exist.  
 Commit message: "routinely commit"
 > ./routine  
