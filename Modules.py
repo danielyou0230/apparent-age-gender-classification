@@ -8,6 +8,7 @@ import time
 from scipy.ndimage.filters import gaussian_filter
 import random
 from scipy import ndimage
+import argparse
 
 # To-be-done
 # Make loose detection on classifier
@@ -663,6 +664,9 @@ def debug_analyse_image_texture(file, sigma=1.0):
 #debug_analyse_image_texture('150.jpg', sigma=7)
 
 if __name__ == "__main__":
+	#parser = argparse.ArgumentParser()
+	#parser.add_argument("-v", "--verbosity", action="count",
+	#					help="show info in each directory")
 	#face_landmark_Preliminary()
 	#export2csv(blur=True, sigma=2.0, hflip=True, vflip=False, \
 	#          hvsplit=True, img_size=100, sample_size=100)
