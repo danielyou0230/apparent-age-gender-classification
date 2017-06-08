@@ -76,7 +76,7 @@ Make the model usable... :(
 
 ### Issues
 \#1 Load testing data as batch for validation.  
-\#2 Unusable model (Cause UNKNOWN)
+\#2 Unusable model (Cause UNKNOWN)  
 \#3 Out-of-Memory... perhaps not well optimized :(
 
 ### TO-DOs
