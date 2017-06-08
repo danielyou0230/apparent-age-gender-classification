@@ -80,7 +80,7 @@ Make the model usable... :(
 4. Find effective data augmentation methods  
 5. Increase the amount of data  
 
-## Easy git script
+## Easy git script  
 ###Script name: 
 routine  
 ###How-to:  
