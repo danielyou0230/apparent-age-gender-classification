@@ -57,7 +57,7 @@ image_size = 128
 depth = 1
 # Parameters
 learning_rate = 0.001
-training_iters = 800100
+training_iters = 1000100
 batch_size = 20
 display_step = 10
 
@@ -278,15 +278,15 @@ with tf.Session() as sess:
 			print "Iter {:6d}, Minibatch Loss = {:.6f}, Training Accuracy = {:2.2f}%" \
 				  .format(step * batch_size, loss, acc * 100)
 			#  .format(step * batch_size, loss, acc * 100)
-			delta_loss = prev_loss - loss
-			if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
-				stagnant += 1
-				if stagnant == 2:
-					print "Two consecutive losses change < 0.03, stopping..."
-					break
-			else:
-				prev_loss = loss
-				stagnant = 0
+			#delta_loss = prev_loss - loss
+			#if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
+			#	stagnant += 1
+			#	if stagnant == 2:
+			#		print "Two consecutive losses change < 0.03, stopping..."
+			#		break
+			#else:
+			#	prev_loss = loss
+			#	stagnant = 0
 		step += 1
 	print "Optimization Finished!"
 	# 
