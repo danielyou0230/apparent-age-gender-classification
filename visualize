@@ -1,0 +1,7 @@
+# bash
+
+if [ $1 ]; then
+	python ../../tensorflow/tensorflow/tensorboard/tensorboard.py --logdir=$1
+else
+	python ../../tensorflow/tensorflow/tensorboard/tensorboard.py --logdir=tflog
+fi
