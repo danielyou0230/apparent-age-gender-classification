@@ -2,6 +2,7 @@ import os
 import tensorflow as tf 
 from PIL import Image
 import argparse
+import random
 
 # Parameters
 path_list = ['../X_data', '../T_data']
@@ -18,6 +19,7 @@ def _bytes_feature(value):
 
 def data_converter(path, tf_data, verbose, split):
 	numlist = []
+	buff = []
 	if not split:
 		with tf.python_io.TFRecordWriter(tf_data) as converter:
 			for idx_age, itr_age in enumerate(age):
@@ -42,9 +44,15 @@ def data_converter(path, tf_data, verbose, split):
 								"label"  : _int64_feature(class_label),
 								"img_raw": _bytes_feature(img_raw)
 							} ))
-							converter.write(example.SerializeToString())
+							#converter.write(example.SerializeToString())
+							buff.append(example.SerializeToString())
 						else:
 							continue
+			
+			index = random.sample(xrange(len(buff)), len(buff))
+			for itr in index:
+				converter.write(buff[itr])
+
 	else:
 		for idx_age, itr_age in enumerate(age):
 			for idx_gender, itr_gender in enumerate(gender):

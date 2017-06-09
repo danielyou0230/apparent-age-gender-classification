@@ -6,12 +6,12 @@ import io
 import pandas as pd
 
 # Parameters
-file_training_normal = "CSV_Data/training_normal.csv"
-file_training_targ   = "CSV_Data/training_target.csv"
-
-file_info          = "CSV_Data/processed_amount.csv"
-file_testing_data  = "CSV_Data/testing_data.csv"
-file_testing_targ  = "CSV_Data/testing_target.csv"
+#file_training_normal = "CSV_Data/training_normal.csv"
+#file_training_targ   = "CSV_Data/training_target.csv"
+#
+#file_info          = "CSV_Data/processed_amount.csv"
+#file_testing_data  = "CSV_Data/testing_data.csv"
+#file_testing_targ  = "CSV_Data/testing_target.csv"
 
 numfeatures = 500
 numTrees = 1000
@@ -56,9 +56,9 @@ def load_tfrecord_batch(filename):
 image_size = 128
 depth = 1
 # Parameters
-learning_rate = 0.0003
-training_iters = 200 #10000
-batch_size = 200
+learning_rate = 0.001
+training_iters = 80010
+batch_size = 50
 display_step = 10
 
 # Network Parameters
@@ -227,13 +227,13 @@ correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 # Load training data
-img, label = read_and_decode("train.tfrecords")
+img, label = read_and_decode("tfrecords/train.tfrecords")
 batch_img, batch_label = tf.train.shuffle_batch([img, label],
-												batch_size=batch_size, capacity=15000,
-												min_after_dequeue=10000,
+												batch_size=batch_size, capacity=5000,
+												min_after_dequeue=1000,
 												allow_smaller_final_batch=True)
 # Load testing data
-t_img, t_label = read_and_decode("test.tfrecords")
+t_img, t_label = read_and_decode("tfrecords/test.tfrecords")
 test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
 											 batch_size=800, capacity=800,
 											 min_after_dequeue=10,
@@ -265,43 +265,32 @@ with tf.Session() as sess:
 	prev_loss = 0.
 	stagnant = 0
 	# Keep training until reach max iterations
-	while step <= 1000:
-	#while step * batch_size < training_iters:
+	#while step <= 1000:
+	while step * batch_size <= training_iters:
 		batch_xs, batch_ys = sess.run([batch_img, batch_label])
 		# Fit training using batch data
 		sess.run(optimizer, feed_dict={x: batch_xs, y: batch_ys, keep_prob: dropout})
-		#if step % display_step == 0:
-		# Calculate batch accuracy
-		acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-		# Calculate batch loss
-		loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-		print "Iter {:7d}, Minibatch Loss = {:f}, Training Accuracy = {:2.2f}%" \
-			  .format(step, loss, acc * 100)
+		if step % display_step == 0:
+			# Calculate batch accuracy
+			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+			# Calculate batch loss
+			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+			print "Iter {:7d}, Minibatch Loss = {:f}, Training Accuracy = {:2.2f}%" \
+				  .format(step * batch_size, loss, acc * 100)
 			#  .format(step * batch_size, loss, acc * 100)
-		if step % 1 == 0:
-			batch_tx, batch_ly = sess.run([test_img, test_lbl])
-			c = sess.run(tf.argmax(pred, 1), feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-			d = list(np.argmax(batch_ys, axis=1))
-			c = list(c)
-			#print "pred: 0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
-			#	  .format(c.count(0), c.count(1), c.count(2), c.count(3), \
-			#			  c.count(4), c.count(5), c.count(6), c.count(7))
-			print "org : 0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
-				  .format(d.count(0), d.count(1), d.count(2), d.count(3), \
-						  d.count(4), d.count(5), d.count(6), d.count(7))
-		delta_loss = prev_loss - loss
-		if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
-			stagnant += 1
-			if stagnant == 2:
-				print "Two consecutive losses change < 0.03, stopping..."
-				break
-		else:
-			prev_loss = loss
-			stagnant = 0
+			delta_loss = prev_loss - loss
+			if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
+				stagnant += 1
+				if stagnant == 2:
+					print "Two consecutive losses change < 0.03, stopping..."
+					break
+			else:
+				prev_loss = loss
+				stagnant = 0
 		step += 1
 	print "Optimization Finished!"
 	# 
-	
+	batch_tx, batch_ly = sess.run([test_img, test_lbl])
 	#prob = sess.run(pred, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
 	#a = pd.DataFrame(prob)
 	#a.to_csv('prb.csv', header=False, index=True)
