@@ -121,6 +121,7 @@ TensorBoard install by pip
 
 If TensorBoard is installed  
 > tensorboard --logdir=/path/to/log-directory  
+
 e.g. if the log stores in log/  
 > tensorboard --logdir=log/  
 
