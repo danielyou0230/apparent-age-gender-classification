@@ -2,6 +2,8 @@ import os
 import numpy as np
 import Modules as ml
 import tensorflow as tf
+import io
+import pandas as pd
 
 # Parameters
 file_training_normal = "CSV_Data/training_normal.csv"
@@ -54,9 +56,9 @@ def load_tfrecord_batch(filename):
 image_size = 128
 depth = 1
 # Parameters
-learning_rate = 0.001
-training_iters = 80001
-batch_size = 50
+learning_rate = 0.0003
+training_iters = 200 #10000
+batch_size = 200
 display_step = 10
 
 # Network Parameters
@@ -75,19 +77,6 @@ n_connected = pow(image_size / pool_factor, 2)
 x = tf.placeholder(tf.float32, [None, image_size, image_size, depth], name='input')
 y = tf.placeholder(tf.float32, [None, n_classes], name='label')
 keep_prob = tf.placeholder(tf.float32, name='keep_prob') 
-
-# Create model
-def conv2d_relu(img, w, b):
-	return tf.nn.relu(tf.nn.bias_add\
-					  (tf.nn.conv2d(img, w,\
-									strides=[1, 1, 1, 1],\
-									padding='SAME'), b))
-
-def max_pool(img, k):
-	return tf.nn.max_pool(img, \
-						  ksize=[1, k, k, 1],\
-						  strides=[1, k, k, 1],\
-						  padding='SAME')
 
 # Store layers weight & bias
 # 5x5 conv, 1 input, 32 outputs (kernels)
@@ -230,7 +219,8 @@ pred = tf.add(tf.matmul(dense, w_out), bias_d_out)
 #pred = conv_net(x, weights, biases, keep_prob)
 # Define loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+optimizer = tf.train.ProximalAdagradOptimizer(learning_rate=learning_rate).minimize(cost)
+#optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
 # Evaluate model
 correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
@@ -239,8 +229,8 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 # Load training data
 img, label = read_and_decode("train.tfrecords")
 batch_img, batch_label = tf.train.shuffle_batch([img, label],
-												batch_size=batch_size, capacity=300,
-												min_after_dequeue=200,
+												batch_size=batch_size, capacity=15000,
+												min_after_dequeue=10000,
 												allow_smaller_final_batch=True)
 # Load testing data
 t_img, t_label = read_and_decode("test.tfrecords")
@@ -248,6 +238,13 @@ test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
 											 batch_size=800, capacity=800,
 											 min_after_dequeue=10,
 											 allow_smaller_final_batch=True)
+
+# TensorBoard
+#tf.summary.scalar("Accuracy:", accuracy)
+#tf.summary.scalar("Accuracy:", cost)
+#
+#tf.summary.histogram('accuracy', accuracy)
+#summary_op = tf.summary.merge_all()
 # Initializing the variables
 #init = tf.initialize_all_variables()
 init = tf.global_variables_initializer()
@@ -268,32 +265,52 @@ with tf.Session() as sess:
 	prev_loss = 0.
 	stagnant = 0
 	# Keep training until reach max iterations
-	while step * batch_size < training_iters:
+	while step <= 1000:
+	#while step * batch_size < training_iters:
 		batch_xs, batch_ys = sess.run([batch_img, batch_label])
-		#batch_xs, batch_ys = mnist.train.next_batch(batch_size)########
 		# Fit training using batch data
 		sess.run(optimizer, feed_dict={x: batch_xs, y: batch_ys, keep_prob: dropout})
-		if step % display_step == 0:
-			# Calculate batch accuracy
-			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-			# Calculate batch loss
-			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-			print "Iter {:7d}, Minibatch Loss = {:f}, Training Accuracy = {:2.2f}%" \
-				  .format(step * batch_size, loss, acc * 100)
-			
-			#delta_loss = prev_loss - loss
-			#if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
-			#	stagnant += 1
-			#	if stagnant == 2:
-			#		print "Two consecutive losses change < 0.03, stopping..."
-			#		break
-			#else:
-			#	prev_loss = loss
-			#	stagnant = 0
+		#if step % display_step == 0:
+		# Calculate batch accuracy
+		acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+		# Calculate batch loss
+		loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+		print "Iter {:7d}, Minibatch Loss = {:f}, Training Accuracy = {:2.2f}%" \
+			  .format(step, loss, acc * 100)
+			#  .format(step * batch_size, loss, acc * 100)
+		if step % 1 == 0:
+			batch_tx, batch_ly = sess.run([test_img, test_lbl])
+			c = sess.run(tf.argmax(pred, 1), feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+			d = list(np.argmax(batch_ys, axis=1))
+			c = list(c)
+			#print "pred: 0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
+			#	  .format(c.count(0), c.count(1), c.count(2), c.count(3), \
+			#			  c.count(4), c.count(5), c.count(6), c.count(7))
+			print "org : 0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
+				  .format(d.count(0), d.count(1), d.count(2), d.count(3), \
+						  d.count(4), d.count(5), d.count(6), d.count(7))
+		delta_loss = prev_loss - loss
+		if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
+			stagnant += 1
+			if stagnant == 2:
+				print "Two consecutive losses change < 0.03, stopping..."
+				break
+		else:
+			prev_loss = loss
+			stagnant = 0
 		step += 1
 	print "Optimization Finished!"
 	# 
-	batch_tx, batch_ly = sess.run([test_img, test_lbl])
+	
+	#prob = sess.run(pred, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
+	#a = pd.DataFrame(prob)
+	#a.to_csv('prb.csv', header=False, index=True)
+	c = sess.run(tf.argmax(pred, 1), feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
+	c = list(c)
+	print "0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
+				  .format(c.count(0), c.count(1), c.count(2), c.count(3), \
+						  c.count(4), c.count(5), c.count(6), c.count(7))
+	#batch_tx, batch_ly = sess.run([test_img, test_lbl])
 	#print "size of test{:s}".format(batch_tx.shape)
 	print "Testing Accuracy:", \
 		   sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
