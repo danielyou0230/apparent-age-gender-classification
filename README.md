@@ -88,20 +88,19 @@ Make the model usable... :(
 
 ## Small scripts to make our life much easier  
 ### 1. routine  
-#### Functions:  
 Simple git commit and push at once, and add files if given.  
-#### How-to:  
-##### Method 1. Run the file as bash  
+### How-to:  
+#### Method 1. Run the file as bash  
 > sh routine  
 
-##### Method 2. Run the script as executable  
+#### Method 2. Run the script as executable  
 (required step, run the command just once when moving the file across machines)  
 > chomod 777 routine  
 
 (execute step)  
 > ./routine  
 
-#### Usage:  
+### Usage:  
 1. Just update files that already exist.  
 Commit message: "routinely commit"
 > ./routine  
@@ -113,11 +112,11 @@ Commit message: "File(s): [list\_of\_files] added to the project"
 example:  
 > ./routine file1 file2  
 
-### 2. visualize  
-#### Functions:  
+## 2. visualize  
+### Functions:  
 Open Tensorboard (path adapted to our library path, change it if needed) without  
 TensorBoard install by pip  
-#### Usage  
+### Usage  
 > ./visualize  
 
 If TensorBoard is installed  
@@ -155,13 +154,16 @@ https://github.com/tensorflow/tensorflow/issues/1578
 
 Open TensorBoard on local machine from remote server  
 https://stackoverflow.com/questions/37987839/how-can-i-run-tensorboard-on-a-remote-server  
+  
 Login the remote server using command  
 > ssh -L local_machine_port:127.0.0.1:6006 username@remote_server  
 
-Where 127.0.0.1:6006 represents the port 6006 on remote_server, this  
+Where 127.0.0.1:6006 represents the port 6006 on remote_server, this 
 command forwards all contents on the remote_server:6006 to your local machine.  
+  
 e.g. if 16006 is the port that we want to use as local_machine_port, then  
 > ssh -L 16006:127.0.0.1:6006 username@remote_server  
   
-To open Tensorboard, we can simply accesss the port 16006 on our local machine.  
+To open Tensorboard, we can launch the TensorBoard on the remote server and 
+simply accesss the port 16006 on our local machine.  
 > 127.0.0.1:16006  
