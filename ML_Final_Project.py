@@ -2,8 +2,6 @@ import os
 import numpy as np
 import Modules as ml
 import tensorflow as tf
-import io
-import pandas as pd
 
 # Parameters
 #file_training_normal = "CSV_Data/training_normal.csv"
@@ -56,9 +54,9 @@ def load_tfrecord_batch(filename):
 image_size = 128
 depth = 1
 # Parameters
-learning_rate = 0.001
-training_iters = 1000100
-batch_size = 20
+learning_rate = 0.01
+training_iters = 280100
+batch_size = 25
 display_step = 10
 
 # Network Parameters
@@ -240,67 +238,65 @@ test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
 											 allow_smaller_final_batch=True)
 
 # TensorBoard
-#tf.summary.scalar("Accuracy:", accuracy)
+tf.summary.scalar("Accuracy:", accuracy)
 #tf.summary.scalar("Accuracy:", cost)
-#
-#tf.summary.histogram('accuracy', accuracy)
-#summary_op = tf.summary.merge_all()
+merged = tf.summary.merge_all()
+
 # Initializing the variables
-#init = tf.initialize_all_variables()
 init = tf.global_variables_initializer()
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 # Launch the graph
 with tf.Session() as sess:
 	sess = tf.Session(config=config)
-	writer = tf.summary.FileWriter('tflog/', sess.graph)
+	writer = tf.summary.FileWriter('tflog/', graph=sess.graph)
 	sess.run(init)
 	threads = tf.train.start_queue_runners(sess=sess)
-	#for i in range(3):
-	#	val, l = sess.run([batch_img, batch_label])
-	#	#l = to_categorical(l, 12) 
-	#	print(val.shape, l)
 
 	step = 1
 	prev_loss = 0.
 	stagnant = 0
 	# Keep training until reach max iterations
-	#while step <= 1000:
+	#while step <= 10:
 	while step * batch_size <= training_iters:
 		batch_xs, batch_ys = sess.run([batch_img, batch_label])
 		# Fit training using batch data
 		sess.run(optimizer, feed_dict={x: batch_xs, y: batch_ys, keep_prob: dropout})
 		if step % display_step == 0:
 			# Calculate batch accuracy
-			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+			tfb_summary, acc = sess.run([merged, accuracy], \
+										  feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+			writer.add_summary(tfb_summary, step * batch_size)
 			# Calculate batch loss
 			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+			#writer.add_summary(tfb_summary, step * batch_size)
+			#tf.summary.scalar("Loss:", loss)
 			print "Iter {:6d}, Minibatch Loss = {:.6f}, Training Accuracy = {:2.2f}%" \
 				  .format(step * batch_size, loss, acc * 100)
 			#  .format(step * batch_size, loss, acc * 100)
-			#delta_loss = prev_loss - loss
-			#if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
-			#	stagnant += 1
-			#	if stagnant == 2:
-			#		print "Two consecutive losses change < 0.03, stopping..."
-			#		break
-			#else:
-			#	prev_loss = loss
-			#	stagnant = 0
+			delta_loss = prev_loss - loss
+			if acc > 0.95 and abs(delta_loss) < 0.01 and step > 100:
+				stagnant += 1
+				if stagnant == 2:
+					print "Two consecutive losses change < 0.01, stopping..."
+					break
+			else:
+				prev_loss = loss
+				stagnant = 0
 		step += 1
 	print "Optimization Finished!"
 	# 
 	batch_tx, batch_ly = sess.run([test_img, test_lbl])
-	#prob = sess.run(pred, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
-	#a = pd.DataFrame(prob)
-	#a.to_csv('prb.csv', header=False, index=True)
-	c = sess.run(tf.argmax(pred, 1), feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
-	c = list(c)
+	pred_class = sess.run(tf.argmax(pred, 1), \
+						  feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
+	pred_class = list(pred_class)
 	print "0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
-				  .format(c.count(0), c.count(1), c.count(2), c.count(3), \
-						  c.count(4), c.count(5), c.count(6), c.count(7))
-	#batch_tx, batch_ly = sess.run([test_img, test_lbl])
-	#print "size of test{:s}".format(batch_tx.shape)
-	print "Testing Accuracy:", \
-		   sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
+				  .format(pred_class.count(0), pred_class.count(1), \
+				          pred_class.count(2), pred_class.count(3), \
+						  pred_class.count(4), pred_class.count(5), \
+						  pred_class.count(6), pred_class.count(7) )
+
+	validation_acc = sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
+	print "Testing Accuracy: {:.3f}%".format(validation_acc * 100.)
+		   
 
