@@ -55,6 +55,9 @@ https://chtseng.wordpress.com/2016/12/23/dlib-%E5%A5%BD%E7%94%A8%E7%9A%84%E7%9A%
 CNN example reference  
 http://arbu00.blogspot.tw/2017/03/2-tensorflowconvolutional-neural.html  
 
+LBP by sk-image  
+http://scikit-image.org/docs/dev/auto_examples/features_detection/plot_local_binary_pattern.html  
+
 ## About the codes
 ML_Final_Project.py: Top module for the project.  
 data_conversion.py : Convert images to binary data for faster access for TensorFlow.  
@@ -66,13 +69,19 @@ pending_code.py    : Codes that might be added to the project.
 (Done) Data Augmentation  
 (Done) Convert to TensorFlow data type  
 (Done) Implementing CNN with TensorFlow  
-(In Progress) Make the model usable  
-(----) Further tuning the model (Refine the model)  
+(Almost Done) Make the model usable  
+(In Progress) Further tuning the model (Refine the model)  
+(In Progress) Choice of optimizers and adaptive learning rate if valid  
+(Coming Soon) Other Image Processing (LBP -> HOG -> ...)  
+(----) Re-train the model and fine tuning  
+(----) Demo code preparation  
 (----) Report  
 
 ## Current Progress
 ### Working on...
-Make the model usable... :(  
+1. Trying to converge the model faster.  
+2. Other optimizers?  
+3. Structure of the model  
 
 ### Issues
 \#1 Load testing data as batch for validation.  
@@ -84,7 +93,12 @@ Make the model usable... :(
 2. Reduce training time and computational resources  
 3. Better face recognition  
 4. Find effective data augmentation methods  
-5. Increase the amount of data  
+5. [DONE] Increase the amount of data (size of dataset = 39xxx)  
+6. Other image processing techniques  
+7. Demo code preparation  
+8. Adaptive learning rate  
+9. Choose proper optimizer  
+https://www.tensorflow.org/api_guides/python/train#Optimizers  
 
 ## Small scripts to make our life much easier  
 ### 1. routine  

@@ -54,7 +54,7 @@ def load_tfrecord_batch(filename):
 image_size = 128
 depth = 1
 # Parameters
-learning_rate = 0.01
+learning_rate = 0.007
 training_iters = 280100
 batch_size = 25
 display_step = 10
