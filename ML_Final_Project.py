@@ -55,13 +55,13 @@ image_size = 128
 depth = 1
 # Parameters
 learning_rate = 0.001
-training_iters = 100000
-batch_size = 50
+training_iters = 80000
+batch_size = 60
 display_step = 10
 
 # Network Parameters
 n_input = pow(image_size, 2)
-dropout = 0.9
+dropout = 0.7
 ## Layer parameters
 feature_map = [depth, 128, 64, 32]
 kernel_size = [16, 16]
@@ -266,6 +266,7 @@ with tf.Session() as sess:
 
 	step = 1
 	prev_loss = 0.
+	stagnant = 0
 	# Keep training until reach max iterations
 	while step * batch_size < training_iters:
 		batch_xs, batch_ys = sess.run([batch_img, batch_label])
@@ -277,20 +278,23 @@ with tf.Session() as sess:
 			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 			# Calculate batch loss
 			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-			print "Iter {:7d}, Minibatch Loss = {:8.6f}, Training Accuracy = {:2.2f}%" \
+			print "Iter {:7d}, Minibatch Loss = {:f}, Training Accuracy = {:2.2f}%" \
 				  .format(step * batch_size, loss, acc * 100)
 			
 			#delta_loss = prev_loss - loss
-			#if acc > 0.85 and abs(delta_loss) < 0.03 and step > 1000:
-			#	print "consecutive loss change < 0.03, stopping..."
-			#	break
+			#if acc > 0.80 and abs(delta_loss) < 0.03 and step > 100:
+			#	stagnant += 1
+			#	if stagnant == 2:
+			#		print "Two consecutive losses change < 0.03, stopping..."
+			#		break
 			#else:
 			#	prev_loss = loss
+			#	stagnant = 0
 		step += 1
 	print "Optimization Finished!"
 	# 
 	batch_tx, batch_ly = sess.run([test_img, test_lbl])
-	print "size of test{:s}".format(batch_tx.shape)
+	#print "size of test{:s}".format(batch_tx.shape)
 	print "Testing Accuracy:", \
 		   sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
 
