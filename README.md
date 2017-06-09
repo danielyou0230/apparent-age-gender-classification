@@ -113,7 +113,6 @@ example:
 > ./routine file1 file2  
 
 ## 2. visualize  
-### Functions:  
 Open Tensorboard (path adapted to our library path, change it if needed) without  
 TensorBoard install by pip  
 ### Usage  
