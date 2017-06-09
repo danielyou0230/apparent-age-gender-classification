@@ -55,8 +55,8 @@ image_size = 128
 depth = 1
 # Parameters
 learning_rate = 0.001
-training_iters = 80000
-batch_size = 60
+training_iters = 80001
+batch_size = 50
 display_step = 10
 
 # Network Parameters
