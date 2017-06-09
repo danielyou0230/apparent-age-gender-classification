@@ -31,7 +31,7 @@ def data_converter(path, tf_data, verbose):
 					if itr_file.endswith('.jpg'):
 						img_path = current_path + itr_file
 						img = Image.open(img_path)
-						img = img.resize((128, 128))
+						#img = img.resize((128, 128))
 						img_raw = img.tobytes()
 						# stream data to the converter
 						example = tf.train.Example(features=tf.train.Features(

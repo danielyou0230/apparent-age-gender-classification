@@ -72,9 +72,9 @@ n_connected = pow(image_size / pool_factor, 2)
 
 # tf Graph input
 #x = tf.placeholder(tf.float32, [None, n_input])
-x = tf.placeholder(tf.float32, [None, image_size, image_size, depth])
-y = tf.placeholder(tf.float32, [None, n_classes])
-keep_prob = tf.placeholder(tf.float32) 
+x = tf.placeholder(tf.float32, [None, image_size, image_size, depth], name='input')
+y = tf.placeholder(tf.float32, [None, n_classes], name='label')
+keep_prob = tf.placeholder(tf.float32, name='keep_prob') 
 
 # Create model
 def conv2d_relu(img, w, b):

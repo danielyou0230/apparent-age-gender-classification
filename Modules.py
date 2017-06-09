@@ -388,7 +388,7 @@ def clear_cache():
 			cleanup_workspace(x_path) if os.path.isdir(x_path) else os.makedirs(x_path)
 			cleanup_workspace(t_path) if os.path.isdir(t_path) else os.makedirs(t_path)
 
-def data_augment(blur=True, sigma=2.0, hflip=True, rotate=False, 
+def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False, 
 				 img_size=100, sample_size=100):
 	# Export and resize the image to cvs files with data augmentation included
 	data = list()
@@ -427,6 +427,7 @@ def data_augment(blur=True, sigma=2.0, hflip=True, rotate=False,
 			for index, itr_file in enumerate(os.listdir(curr_dir)):
 				is_testing = False
 				if itr_file.endswith('.jpg'):
+					token = [age_index + gen_index * 4]
 					image = cv2.imread(curr_dir + itr_file, 0)
 					image = cv2.resize(image, (img_size, img_size))
 					# Original image
@@ -439,25 +440,35 @@ def data_augment(blur=True, sigma=2.0, hflip=True, rotate=False,
 						else:
 							cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image)
 							normal_list[0] += 1
+							target.append(token)
 					else:
 						cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image)
 						normal_list[0] += 1
+						target.append(token)
 					# Data Augmentation:
 					## Gaussian Blurred 
 					if blur and (index in sample[:, 0]):
-						image_blur = gaussian_filter(input=image, sigma=sigma)
-						sample_index = list(sample[:, 0]).index(index)
-						if sample[sample_index, 1] == 1:
-							cv2.imwrite("{:s}/b_{:s}".format(t_path, itr_file), image_blur)
-							is_testing = True
-							amount_list[1] += 1
-						else:
-							cv2.imwrite("{:s}/b_{:s}".format(x_path, itr_file), image_blur)
-							normal_list[1] += 1
+						for itr_sigma in sigma:
+							testfile  = "{:s}/b_{:1.1f}_{:s}".format(t_path, itr_sigma, itr_file)
+							trainfile = "{:s}/b_{:1.1f}_{:s}".format(x_path, itr_sigma, itr_file)
+							image_blur = gaussian_filter(input=image, sigma=itr_sigma)
+							sample_index = list(sample[:, 0]).index(index)
+							if sample[sample_index, 1] == 1 and not is_testing:
+								cv2.imwrite(testfile, image_blur)
+								is_testing = True
+								amount_list[1] += 1
+							else:
+								cv2.imwrite(trainfile, image_blur)
+								normal_list[1] += 1
+								target.append(token)
 					elif blur:
-						image_blur = gaussian_filter(input=image, sigma=sigma)
-						cv2.imwrite("{:s}/b_{:s}".format(x_path, itr_file), image_blur)
-						normal_list[1] += 1
+						for itr_sigma in sigma:
+							image_blur = gaussian_filter(input=image, sigma=itr_sigma)
+							cv2.imwrite("{:s}/b_{:1.1f}_{:s}" \
+										.format(x_path, itr_sigma, itr_file),  \
+										image_blur)
+							normal_list[1] += 1
+							target.append(token)
 					## Flip and Random Rotate 
 					if hflip and (index in sample[:, 0]):
 						image_flip = np.fliplr(image)
@@ -469,10 +480,12 @@ def data_augment(blur=True, sigma=2.0, hflip=True, rotate=False,
 						else:
 							cv2.imwrite("{:s}/h_{:s}".format(x_path, itr_file), image_flip)
 							normal_list[2] += 1
+							target.append(token)
 					elif hflip:
 						image_flip = np.fliplr(image)
 						cv2.imwrite("{:s}/h_{:s}".format(x_path, itr_file), image_flip)
 						normal_list[2] += 1
+						target.append(token)
 					#
 					##if rotate and (index in sample[:, 0]):
 					##  image_flip = np.rot90(image, k=2)
@@ -492,15 +505,13 @@ def data_augment(blur=True, sigma=2.0, hflip=True, rotate=False,
 					##  target.append([age_index + gen_index * 4])
 
 					# Append the target to the list
-					token = [age_index + gen_index * 4]
 					if is_testing:
-						# Class token
 						testing_targ.append(token)
-						for itr in range(sum(mode_info) - 1):
-							target.append(token)
-					else:
-						for itr in range(sum(mode_info)):
-							target.append(token)
+						#for itr in range(sum(mode_info) - 1):
+						#	target.append(token)
+					#else:
+					#	for itr in range(sum(mode_info)):
+					#		target.append(token)
 				else: 
 					continue
 			# Append information for each class to the list
@@ -508,7 +519,7 @@ def data_augment(blur=True, sigma=2.0, hflip=True, rotate=False,
 			amount.append([itr_gender, itr_age, age_index + gen_index * 4, numfile, 
 					  sum(normal_list), normal_list[0], normal_list[1], normal_list[2], 
 					  sum(amount_list), amount_list[0], amount_list[1], amount_list[2], 
-					  sigma, "{:d}x{:d}".format(img_size, img_size)])
+					  "{:d}x{:d}".format(img_size, img_size)])
 
 	df = pandas.DataFrame(np.reshape(np.ravel(target), (len(target), 1)))
 	print np.ravel(target).shape
@@ -519,7 +530,7 @@ def data_augment(blur=True, sigma=2.0, hflip=True, rotate=False,
 						  columns=['Gender', 'Age', 'Class', 'Org_Amt',
 								   'Training', 'Tr_Normal', 'Tr_Blur', 'Tr_hflip', 
 								   'Testing' , 'Te_Normal', 'Te_Blur', 'Te_hflip', 
-								   'sigma', 'img_size'])
+								   'img_size'])
 	df.to_csv('../processed_amount.csv', index=False)
 
 def evaluate_result(prediction, target, numClass):
@@ -670,6 +681,6 @@ if __name__ == "__main__":
 	#face_landmark_Preliminary()
 	#export2csv(blur=True, sigma=2.0, hflip=True, vflip=False, \
 	#          hvsplit=True, img_size=100, sample_size=100)
-	data_augment(blur=True, sigma=2.0, hflip=True, \
-				 rotate=False, img_size=100, sample_size=100)
+	data_augment(blur=True, sigma=[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0], \
+				 hflip=True, rotate=False, img_size=128, sample_size=100)
 	#debug_analyse_image_texture(file='Dataset/adult/female/79.jpg', sigma=1.0)
