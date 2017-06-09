@@ -57,8 +57,8 @@ image_size = 128
 depth = 1
 # Parameters
 learning_rate = 0.001
-training_iters = 80010
-batch_size = 50
+training_iters = 800100
+batch_size = 20
 display_step = 10
 
 # Network Parameters
@@ -229,8 +229,8 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 # Load training data
 img, label = read_and_decode("tfrecords/train.tfrecords")
 batch_img, batch_label = tf.train.shuffle_batch([img, label],
-												batch_size=batch_size, capacity=5000,
-												min_after_dequeue=1000,
+												batch_size=batch_size, capacity=1000,
+												min_after_dequeue=300,
 												allow_smaller_final_batch=True)
 # Load testing data
 t_img, t_label = read_and_decode("tfrecords/test.tfrecords")
@@ -275,7 +275,7 @@ with tf.Session() as sess:
 			acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 			# Calculate batch loss
 			loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
-			print "Iter {:7d}, Minibatch Loss = {:f}, Training Accuracy = {:2.2f}%" \
+			print "Iter {:6d}, Minibatch Loss = {:.6f}, Training Accuracy = {:2.2f}%" \
 				  .format(step * batch_size, loss, acc * 100)
 			#  .format(step * batch_size, loss, acc * 100)
 			delta_loss = prev_loss - loss
