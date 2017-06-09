@@ -139,3 +139,15 @@ https://github.com/tensorflow/tensorflow/issues/1578
 > config.gpu_options.allow_growth=True  
 > with tf.Session() as sess:  
 > &nbsp;&nbsp;&nbsp;&nbsp;sess = tf.Session(config=config)  
+
+Open TensorBoard on local machine from remote server  
+https://stackoverflow.com/questions/37987839/how-can-i-run-tensorboard-on-a-remote-server  
+Login the remote server using command  
+> ssh -L local_machine_port:127.0.0.1:6006 username@remote_server  
+Where 127.0.0.1:6006 represents the port 6006 on remote_server, this  
+command forwards all contents on the remote_server:6006 to your local machine.  
+e.g. if 16006 is the port that we want to use as local_machine_port, then  
+> ssh -L 16006:127.0.0.1:6006 username@remote_server  
+  
+To open Tensorboard, we can simply accesss the port 16006 on our local machine.  
+> 127.0.0.1:16006  

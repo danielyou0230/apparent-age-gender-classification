@@ -125,15 +125,16 @@ bias_d_out = tf.Variable(tf.random_normal([n_classes]))
 
 conv1 = tf.layers.conv2d(
 	  inputs=x,
-	  filters=16,
+	  filters=64,
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
 	  use_bias=True,
 	  kernel_initializer=None,
-	  bias_initializer=tf.zeros_initializer() ) 
+	  bias_initializer=tf.zeros_initializer(),
+	  name='conv1' ) 
 
-pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
+pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2, name='pool1')
 pool1 = tf.nn.dropout(pool1, keep_prob) 
 
 # Convolution Layer
@@ -145,66 +146,71 @@ pool1 = tf.nn.dropout(pool1, keep_prob)
 
 conv2 = tf.layers.conv2d(
 	  inputs=pool1,
-	  filters=32,
-	  kernel_size=[5, 5],
-	  padding="same",
-	  activation=tf.nn.relu,
-	  use_bias=True,
-	  kernel_initializer=None,
-	  bias_initializer=tf.zeros_initializer() ) 
-
-pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
-pool2 = tf.nn.dropout(pool2, keep_prob) 
-
-# Convolution Layer
-conv3 = tf.layers.conv2d(
-	  inputs=pool2,
-	  filters=64,
-	  kernel_size=[5, 5],
-	  padding="same",
-	  activation=tf.nn.relu,
-	  use_bias=True,
-	  kernel_initializer=None,
-	  bias_initializer=tf.zeros_initializer() ) 
-
-pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2)
-pool3 = tf.nn.dropout(pool3, keep_prob) 
-
-# Convolution Layer
-conv4 = tf.layers.conv2d(
-	  inputs=pool3,
 	  filters=128,
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
 	  use_bias=True,
 	  kernel_initializer=None,
-	  bias_initializer=tf.zeros_initializer() ) 
+	  bias_initializer=tf.zeros_initializer() ,
+	  name='conv2') 
 
-pool4 = tf.layers.max_pooling2d(inputs=conv4, pool_size=[2, 2], strides=2)
-pool4 = tf.nn.dropout(pool4, keep_prob) 
+pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, name='pool2')
+pool2 = tf.nn.dropout(pool2, keep_prob) 
 
 # Convolution Layer
-conv5 = tf.layers.conv2d(
-	  inputs=pool4,
+conv3 = tf.layers.conv2d(
+	  inputs=pool2,
 	  filters=256,
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
 	  use_bias=True,
 	  kernel_initializer=None,
-	  bias_initializer=tf.zeros_initializer() ) 
+	  bias_initializer=tf.zeros_initializer(),
+	  name='conv3' ) 
 
-pool5 = tf.layers.max_pooling2d(inputs=conv5, pool_size=[2, 2], strides=2)
+pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2, name='pool3')
+pool3 = tf.nn.dropout(pool3, keep_prob) 
+
+# Convolution Layer
+conv4 = tf.layers.conv2d(
+	  inputs=pool3,
+	  filters=512,
+	  kernel_size=[5, 5],
+	  padding="same",
+	  activation=tf.nn.relu,
+	  use_bias=True,
+	  kernel_initializer=None,
+	  bias_initializer=tf.zeros_initializer(),
+	  name='conv4' ) 
+
+pool4 = tf.layers.max_pooling2d(inputs=conv4, pool_size=[2, 2], strides=2, name='pool4')
+pool4 = tf.nn.dropout(pool4, keep_prob) 
+
+# Convolution Layer
+conv5 = tf.layers.conv2d(
+	  inputs=pool4,
+	  filters=1024,
+	  kernel_size=[5, 5],
+	  padding="same",
+	  activation=tf.nn.relu,
+	  use_bias=True,
+	  kernel_initializer=None,
+	  bias_initializer=tf.zeros_initializer(),
+	  name='conv5' ) 
+
+pool5 = tf.layers.max_pooling2d(inputs=conv5, pool_size=[2, 2], strides=2, name='pool5')
 pool5 = tf.nn.dropout(pool5, keep_prob) 
 
 # Dense Layer
 #pool2_flat = tf.reshape(pool2, [-1, w_dens1.get_shape().as_list()[0]]) 
-flatten = tf.reshape(pool5, [-1, n_connected * 256]) 
+flatten = tf.reshape(pool5, [-1, n_connected * 1024]) 
 dense = tf.layers.dense(
 		inputs=flatten, 
 		units=2048, 
-		activation=tf.nn.relu )
+		activation=tf.nn.relu,
+		name='dense' )
 dense = tf.nn.dropout(dense, keep_prob) 
 
 # Relu activation
@@ -250,6 +256,7 @@ config.gpu_options.allow_growth=True
 # Launch the graph
 with tf.Session() as sess:
 	sess = tf.Session(config=config)
+	writer = tf.summary.FileWriter('tflog/', sess.graph)
 	sess.run(init)
 	threads = tf.train.start_queue_runners(sess=sess)
 	#for i in range(3):
@@ -273,12 +280,12 @@ with tf.Session() as sess:
 			print "Iter {:7d}, Minibatch Loss = {:8.6f}, Training Accuracy = {:2.2f}%" \
 				  .format(step * batch_size, loss, acc * 100)
 			
-			delta_loss = prev_loss - loss
-			if acc > 0.85 and abs(delta_loss) < 0.03 and step > 1000:
-				print "consecutive loss change < 0.03, stopping..."
-				break
-			else:
-				prev_loss = loss
+			#delta_loss = prev_loss - loss
+			#if acc > 0.85 and abs(delta_loss) < 0.03 and step > 1000:
+			#	print "consecutive loss change < 0.03, stopping..."
+			#	break
+			#else:
+			#	prev_loss = loss
 		step += 1
 	print "Optimization Finished!"
 	# 
