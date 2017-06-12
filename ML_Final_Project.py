@@ -63,8 +63,8 @@ display_step = 10
 n_input = pow(image_size, 2)
 dropout = 0.7
 ## Layer parameters
-feature_map = [depth, 128, 64, 32]
-kernel_size = [16, 16]
+kernel_units = [depth, 64, 128, 256, 512, 1024, 2048]
+kernel = [16, 16]
 # Fully connected inputs
 #pool_factor = pow(2, len(kernel_size))
 pool_factor = pow(2, 5)
@@ -76,43 +76,15 @@ x = tf.placeholder(tf.float32, [None, image_size, image_size, depth], name='inpu
 y = tf.placeholder(tf.float32, [None, n_classes], name='label')
 keep_prob = tf.placeholder(tf.float32, name='keep_prob') 
 
-# Store layers weight & bias
-# 5x5 conv, 1 input, 32 outputs (kernels)
-#w_conv1 = tf.Variable(tf.random_normal([kernel_size[0], kernel_size[0], feature_map[0], 
-#										feature_map[1]])) 
-#
-#w_conv2 = tf.Variable(tf.random_normal([kernel_size[1], kernel_size[1], feature_map[1], 
-#										feature_map[2]])) 
-#
-#w_conv3 = tf.Variable(tf.random_normal([kernel_size[2], kernel_size[2], feature_map[2], 
-#										feature_map[3]])) 
-# Fully connected Layer
-#w_dens1 = tf.Variable(tf.random_normal([n_connected * feature_map[2], 
-#										feature_map[3]])) 
-# Class Prediction)
-#w_out   = tf.Variable(tf.random_normal([feature_map[3], n_classes])) 
-w_out   = tf.Variable(tf.random_normal([2048, n_classes])) 
+# Class Prediction
+w_out   = tf.Variable(tf.random_normal([kernel_units[6], n_classes])) 
 
-#bias_conv1 = tf.Variable(tf.random_normal([feature_map[1]]))
-#bias_conv2 = tf.Variable(tf.random_normal([feature_map[2]]))
-#bias_conv3 = tf.Variable(tf.random_normal([feature_map[3]]))
-#bias_dens1 = tf.Variable(tf.random_normal([feature_map[3]]))
 bias_d_out = tf.Variable(tf.random_normal([n_classes]))
 
-# Construct model
-#_X = tf.reshape(x, shape=[-1, image_size, image_size, depth])
-
 # Convolution Layer
-#conv1 = conv2d_relu(_X, w_conv1, bias_conv1)
-#conv1 = conv2d_relu(x, w_conv1, bias_conv1)
-## Max Pooling (down-sampling)
-#conv1 = max_pool(conv1, k=2)
-## Apply Dropout
-#conv1 = tf.nn.dropout(conv1, keep_prob)
-
 conv1 = tf.layers.conv2d(
 	  inputs=x,
-	  filters=64,
+	  filters=kernel_units[1],
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
@@ -124,16 +96,9 @@ conv1 = tf.layers.conv2d(
 pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2, name='pool1')
 pool1 = tf.nn.dropout(pool1, keep_prob) 
 
-# Convolution Layer
-#conv2 = conv2d_relu(conv1, w_conv2, bias_conv2)
-## Max Pooling (down-sampling)
-#conv2 = max_pool(conv2, k=2)
-## Apply Dropout
-#conv2 = tf.nn.dropout(conv2, keep_prob)
-
 conv2 = tf.layers.conv2d(
 	  inputs=pool1,
-	  filters=128,
+	  filters=kernel_units[2],
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
@@ -145,10 +110,9 @@ conv2 = tf.layers.conv2d(
 pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, name='pool2')
 pool2 = tf.nn.dropout(pool2, keep_prob) 
 
-# Convolution Layer
 conv3 = tf.layers.conv2d(
 	  inputs=pool2,
-	  filters=256,
+	  filters=kernel_units[3],
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
@@ -160,10 +124,9 @@ conv3 = tf.layers.conv2d(
 pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2, name='pool3')
 pool3 = tf.nn.dropout(pool3, keep_prob) 
 
-# Convolution Layer
 conv4 = tf.layers.conv2d(
 	  inputs=pool3,
-	  filters=512,
+	  filters=kernel_units[4],
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
@@ -175,10 +138,9 @@ conv4 = tf.layers.conv2d(
 pool4 = tf.layers.max_pooling2d(inputs=conv4, pool_size=[2, 2], strides=2, name='pool4')
 pool4 = tf.nn.dropout(pool4, keep_prob) 
 
-# Convolution Layer
 conv5 = tf.layers.conv2d(
 	  inputs=pool4,
-	  filters=1024,
+	  filters=kernel_units[5],
 	  kernel_size=[5, 5],
 	  padding="same",
 	  activation=tf.nn.relu,
@@ -191,30 +153,16 @@ pool5 = tf.layers.max_pooling2d(inputs=conv5, pool_size=[2, 2], strides=2, name=
 pool5 = tf.nn.dropout(pool5, keep_prob) 
 
 # Dense Layer
-#pool2_flat = tf.reshape(pool2, [-1, w_dens1.get_shape().as_list()[0]]) 
-flatten = tf.reshape(pool5, [-1, n_connected * 1024]) 
+flatten = tf.reshape(pool5, [-1, n_connected * kernel_units[5]]) 
 dense = tf.layers.dense(
 		inputs=flatten, 
-		units=2048, 
+		units=kernel_units[6], 
 		activation=tf.nn.relu,
 		name='dense' )
 dense = tf.nn.dropout(dense, keep_prob) 
-
-# Relu activation
-#dense1 = tf.nn.relu(tf.add(tf.matmul(dense1, w_dens1), bias_dens1)) 
-# Apply Dropout
-#dense1 = tf.nn.dropout(dense1, keep_prob) 
-
 # Output, class prediction
 pred = tf.add(tf.matmul(dense, w_out), bias_d_out)
 
-# Generate Predictions
-#predictions = { 
-#				"classes": tf.argmax(input=logits, axis=1),
-#				"probabilities": tf.nn.softmax(logits, name="softmax_tensor")
-#			  }
-
-#pred = conv_net(x, weights, biases, keep_prob)
 # Define loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
 optimizer = tf.train.ProximalAdagradOptimizer(learning_rate=learning_rate).minimize(cost)
@@ -239,7 +187,6 @@ test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
 
 # TensorBoard
 tf.summary.scalar("Accuracy:", accuracy)
-#tf.summary.scalar("Accuracy:", cost)
 merged = tf.summary.merge_all()
 
 # Initializing the variables
@@ -249,7 +196,7 @@ config.gpu_options.allow_growth=True
 # Launch the graph
 with tf.Session() as sess:
 	sess = tf.Session(config=config)
-	writer = tf.summary.FileWriter('tflog/', graph=sess.graph)
+	writer = tf.summary.FileWriter('board/', graph=sess.graph)
 	sess.run(init)
 	threads = tf.train.start_queue_runners(sess=sess)
 
@@ -298,5 +245,4 @@ with tf.Session() as sess:
 
 	validation_acc = sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
 	print "Testing Accuracy: {:.3f}%".format(validation_acc * 100.)
-		   
 
