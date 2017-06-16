@@ -5,8 +5,10 @@ import argparse
 import random
 
 # Parameters
-path_list = ['../X_data', '../T_data']
-data_list = ["tfrecords/train.tfrecords", "tfrecords/test.tfrecords"]
+#path_list = ['../X_data', '../T_data']
+path_list = ['../', '../'] # LBP path here
+#data_list = ["tfrecords/train.tfrecords", "tfrecords/test.tfrecords"]
+data_list = ["tfrecords/train_lbp.tfrecords", "tfrecords/test_lbp.tfrecords"]
 age = ['child', 'young', 'adult', 'elder']
 gender = ['male', 'female']
 
