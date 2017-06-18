@@ -194,6 +194,7 @@ init = tf.global_variables_initializer()
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 # Launch the graph
+
 with tf.Session() as sess:
 	sess = tf.Session(config=config)
 	writer = tf.summary.FileWriter('board/', graph=sess.graph)

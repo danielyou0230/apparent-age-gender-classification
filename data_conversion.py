@@ -9,7 +9,10 @@ from sklearn.preprocessing import normalize
 from scipy.stats import itemfreq 
 from skimage.feature import local_binary_pattern 
 import cv2 
+import numpy as np
 
+
+eps=1e-7
 
 # Parameters
 path_list = ['../X_data', '../T_data']
@@ -45,7 +48,17 @@ def data_converter(path, tf_data, args):
 						img_path = current_path + itr_file
 
 						if args.lbp:
-							example = LBP(img_path, 3)
+							L = LBP(img_path,2,8)
+							img =  Image.fromarray(L)
+							img_raw = img.tobytes()
+							# stream data to the converter
+							example = tf.train.Example(features=tf.train.Features(
+							feature=
+							{ 
+								"label"  : _int64_feature(class_label),
+								"img_raw": _bytes_feature(img_raw)
+							} ))
+							print type(example)
 						else:
 							img = Image.open(img_path)
 							img_raw = img.tobytes()
@@ -58,15 +71,9 @@ def data_converter(path, tf_data, args):
 							} ))
 
 						if not args.randomize:
-							if args.lbp:
-								converter.write(example)
-							else: 
-								converter.write(example.SerializeToString())
+							converter.write(example.SerializeToString())
 						else:
-							if args.lbp:
-								buff.append(example)
-							else:
-								buff.append(example.SerializeToString())
+							buff.append(example.SerializeToString())
 					else:
 						continue
 		if args.randomize:
@@ -75,17 +82,16 @@ def data_converter(path, tf_data, args):
 				converter.write(buff[itr])
 	print "{:s}: {:d}".format(path, sum(numlist))
 
-def LBP(train_image, radius):
+
+def LBP(train_image,radius, no_points):
 	im = cv2.imread(train_image)
-	print im.shape
 	im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-	no_points = 8 * radius
-	lbp = local_binary_pattern(im_gray, no_points, radius, method='uniform')
-	
-	x = itemfreq(lbp.ravel())
-	
-	hist = x[:, 1]/sum(x[:, 1])
-	return hist
+	lbp = local_binary_pattern(im_gray, no_points, radius, method='nri_uniform')
+	#(hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0,(no_points*(no_points-1)+4)))
+	#hist = hist.astype("float")
+	#hist /= (hist.sum() + eps)
+	#print hist.sum()
+	return lbp
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
