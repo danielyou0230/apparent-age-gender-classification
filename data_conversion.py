@@ -44,6 +44,8 @@ def data_converter(path, tf_data, args):
 				if args.verbosity:
 					print "{:s}: {:4d} files".format(current_path, n_file)
 				for itr_file in os.listdir(current_path):
+					print "{:s}: {:4d} files".format(current_path, n_file)
+
 					if itr_file.endswith('.jpg'):
 						img_path = current_path + itr_file
 
@@ -58,7 +60,7 @@ def data_converter(path, tf_data, args):
 								"label"  : _int64_feature(class_label),
 								"img_raw": _bytes_feature(img_raw)
 							} ))
-							print type(example)
+						
 						else:
 							img = Image.open(img_path)
 							img_raw = img.tobytes()
@@ -95,11 +97,11 @@ def LBP(train_image,radius, no_points):
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument("-v", "--verbosity", action="count",
+	parser.add_argument("-v", "--verbosity", action="store_true",
 						help="show info in each directory")
-	parser.add_argument("-r", "--randomize", action="count",
+	parser.add_argument("-r", "--randomize", action="store_true",
 						help="randomize the order of the data across classes")
-	parser.add_argument("-l", "--lbp", action="count",
+	parser.add_argument("-l", "--lbp", action="store_true",
 						help="use Local Binary Pattern (LBP) to processing")
 
 	args = parser.parse_args()

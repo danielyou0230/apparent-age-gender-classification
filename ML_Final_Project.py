@@ -247,3 +247,7 @@ with tf.Session() as sess:
 	validation_acc = sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
 	print "Testing Accuracy: {:.3f}%".format(validation_acc * 100.)
 
+	# Save model 
+	save_ckpt = saver.save(sess, "model.ckpt")
+	print "Model saved in file: {:s}".format(save_ckpt)
+

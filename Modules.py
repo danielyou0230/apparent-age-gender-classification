@@ -245,6 +245,36 @@ def face_landmark_Preliminary():
 	#df = pandas.DataFrame(false_Lst)
 	#df.to_csv('../dlib_falsedetected.csv', header=False, index=False)
 
+def face_extraction(path):
+	path_str = path[:-1] if path.endswith('/') else path
+	detector = dlib.get_frontal_face_detector()
+	predictor = dlib.shape_predictor(dat_face_landmark)
+	undetectLst = list()
+
+	numfile = get_dataInfo(path_str)
+	not_detected = 0
+	#false_detect = 0
+	
+	for itr_file in os.listdir(path_str):
+		if itr_file.endswith('.jpg'):
+			file = "{:s}/{:s}".format(path_str, itr_file)
+			image = cv2.imread(file)
+			image = imutils.resize(image, width=500)
+			bFace, faces = facial_landmark_detection(image, detector, predictor, file)
+			
+			if not bFace:
+				#print file
+				undetectLst.append(file)
+				not_detected += 1
+				continue
+			x, y, w, h = faces
+			crop_img = image[y:y + h, x:x + w]
+			cv2.imwrite("{:s}_faces/{:s}".format(path_str, itr_file), crop_img)
+			itr += 1 
+		else:
+			continue
+	print "{:s}: {:4d}/{:4d}".format(path_str, not_detected, numfile / 2)
+
 def generate_mode(amount, sample_size, mode):
 	# Generate the index of the image and the corresponding augmentation mode
 	sample_list = random.sample(xrange(amount), sample_size)
