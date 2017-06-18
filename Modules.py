@@ -248,136 +248,11 @@ def face_landmark_Preliminary():
 def generate_mode(amount, sample_size, mode):
 	# Generate the index of the image and the corresponding augmentation mode
 	sample_list = random.sample(xrange(amount), sample_size)
-	sample_type = [np.random.choice(mode, 1) for itr in range(sample_size)]
-	#for itr in mode:
-	#	print "{:1d}: {:3d}".format(itr, sample_type.count(itr))
-	sample = np.hstack([np.vstack(sample_list), np.vstack(sample_type)])
+	#sample_type = [np.random.choice(mode, 1) for itr in range(sample_size)]
+	#sample = np.hstack([np.vstack(sample_list), np.vstack(sample_type)])
+	sample = np.vstack(sample_list)
 	sample = sample[sample[:, 0].argsort()]
 	return sample
-
-def export2csv(blur=True, sigma=2.0, hflip=True, rotate=False, 
-			   img_size=100, sample_size=100):
-	# Export and resize the image to cvs files with data augmentation included
-	data = list()
-	aug_br = list()
-	aug_hf = list()
-	target = list()
-	amount = list()
-	testing_data = list()
-	testing_targ = list()
-
-	mode = list()
-	# The criterion of different data augmentations 
-	mode_info  = [True, blur, hflip, rotate]
-	for index, itr in enumerate(mode_info):
-		if itr:
-			mode.append(index)
-		else:
-			continue
-
-	# Load and distribute the data to the corresponding group
-	for (age_index, itr_age) in enumerate(age):
-		for (gen_index, itr_gender) in enumerate(gender):
-			curr_dir = "{:s}/{:s}/{:s}/".format(prepPath, itr_age, itr_gender)
-			numfile = get_dataInfo(curr_dir)
-
-			# Generate the index and the mode of the image to be testing data
-			sample = generate_mode(numfile, sample_size, mode)
-			# Keep track of the amount of testing data for each data augmentation
-			amount_list = [0] * 4
-			normal_list = [0] * 4
-			for index, itr_file in enumerate(os.listdir(curr_dir)):
-				is_testing = False
-				if itr_file.endswith('.jpg'):
-					image = cv2.imread(curr_dir + itr_file, 0)
-					image = cv2.resize(image, (img_size, img_size))
-					# Original image
-					if index in sample[:, 0]:
-						sample_index = list(sample[:, 0]).index(index)
-						if sample[sample_index, 1] == 0:
-							testing_data.append(image.reshape(1, image.size))
-							is_testing = True
-							amount_list[0] += 1
-						else:
-							data.append(image.reshape(1, image.size))
-							normal_list[0] += 1
-							target.append([age_index + gen_index * 4])
-					else:
-						data.append(image.reshape(1, image.size))
-						normal_list[0] += 1
-						target.append([age_index + gen_index * 4])
-					# Data Augmentation:
-					## Gaussian Blurred 
-					if blur and (index in sample[:, 0]):
-						image_blur = gaussian_filter(input=image, sigma=sigma)
-						sample_index = list(sample[:, 0]).index(index)
-						if sample[sample_index, 1] == 1:
-							testing_data.append(image_blur.reshape(1, image_blur.size))
-							is_testing = True
-							amount_list[1] += 1
-						else:
-							aug_br.append(image_blur.reshape(1, image_blur.size))
-							normal_list[1] += 1
-							target.append([age_index + gen_index * 4])
-					elif blur:
-						image_blur = gaussian_filter(input=image, sigma=sigma)
-						aug_br.append(image_blur.reshape(1, image_blur.size))
-						normal_list[1] += 1
-						target.append([age_index + gen_index * 4])
-					## Flip and Rotate 
-					### hflip and not vflip: output horizontal flipped image
-					#criterion = (hflip and not vflip) or (hflip and hvsplit)
-					if hflip and (index in sample[:, 0]):
-						image_flip = np.fliplr(image)
-						sample_index = list(sample[:, 0]).index(index)
-						if sample[sample_index, 1] == 2:
-							testing_data.append(image_flip.reshape(1, image_flip.size))
-							is_testing = True
-							amount_list[2] += 1
-						else:
-							aug_hf.append(image_flip.reshape(1, image_flip.size))
-							normal_list[2] += 1
-							target.append([age_index + gen_index * 4])
-					elif hflip:
-						image_flip = np.fliplr(image)
-						aug_hf.append(image_flip.reshape(1, image_flip.size))
-						normal_list[2] += 1
-						target.append([age_index + gen_index * 4])
-					#criterion = hflip and vflip and not hvsplit
-					if rotate and (index in sample[:, 0]):
-						image_flip = np.rot90(image, k=2)
-						sample_index = list(sample[:, 0]).index(index)
-						if sample[sample_index, 1] == 3:
-							testing_data.append(image_flip.reshape(1, image_flip.size))
-							is_testing = True
-							amount_list[3] += 1
-						else:
-							aug_rt.append(image_flip.reshape(1, image_flip.size))
-							normal_list[3] += 1
-							target.append([age_index + gen_index * 4])
-					elif rotate:
-						image_flip = np.rot90(image, k=2)
-						aug_rt.append(image_flip.reshape(1, image_flip.size))
-						normal_list[3] += 1
-						target.append([age_index + gen_index * 4])
-
-					# Append the target to the list
-					if is_testing:
-						# Class token
-						testing_targ.append([age_index + gen_index * 4])
-
-				else: 
-					continue
-			# Append information for each class to the list
-			amount.append([itr_gender, itr_age, age_index + gen_index * 4, numfile, 
-						  sum(normal_list),
-						  normal_list[0], normal_list[1], 
-						  normal_list[2], normal_list[3], 
-						  sum(amount_list), 
-						  amount_list[0], amount_list[1], 
-						  amount_list[2], amount_list[3], 
-						  sigma, "{:d}x{:d}".format(img_size, img_size)])
-	df.to_csv('../CSV_Data/processed_amount.csv', index=False)
 
 def clear_cache():
 	for (age_index, itr_age) in enumerate(age):
@@ -430,63 +305,27 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 					token = [age_index + gen_index * 4]
 					image = cv2.imread(curr_dir + itr_file, 0)
 					image = cv2.resize(image, (img_size, img_size))
-					# Original image
 					if index in sample[:, 0]:
-						sample_index = list(sample[:, 0]).index(index)
-						if sample[sample_index, 1] == 0:
-							cv2.imwrite("{:s}/{:s}".format(t_path, itr_file), image)
-							is_testing = True
-							amount_list[0] += 1
-						else:
-							cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image)
-							normal_list[0] += 1
-							target.append(token)
+						cv2.imwrite("{:s}/{:s}".format(t_path, itr_file), image)
+						#is_testing = True
+						amount_list[0] += 1
+						testing_targ.append(token)
 					else:
 						cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image)
 						normal_list[0] += 1
-						target.append(token)
-					# Data Augmentation:
-					## Gaussian Blurred 
-					if blur and (index in sample[:, 0]):
-						for itr_sigma in sigma:
-							testfile  = "{:s}/b_{:1.1f}_{:s}".format(t_path, itr_sigma, itr_file)
-							trainfile = "{:s}/b_{:1.1f}_{:s}".format(x_path, itr_sigma, itr_file)
-							image_blur = gaussian_filter(input=image, sigma=itr_sigma)
-							sample_index = list(sample[:, 0]).index(index)
-							if sample[sample_index, 1] == 1 and not is_testing:
-								cv2.imwrite(testfile, image_blur)
-								is_testing = True
-								amount_list[1] += 1
-							else:
+						if blur:
+							for itr_sigma in sigma:
+								trainfile = "{:s}/b_{:1.1f}_{:s}".format(x_path, itr_sigma, itr_file)
+								image_blur = gaussian_filter(input=image, sigma=itr_sigma)
 								cv2.imwrite(trainfile, image_blur)
 								normal_list[1] += 1
 								target.append(token)
-					elif blur:
-						for itr_sigma in sigma:
-							image_blur = gaussian_filter(input=image, sigma=itr_sigma)
-							cv2.imwrite("{:s}/b_{:1.1f}_{:s}" \
-										.format(x_path, itr_sigma, itr_file),  \
-										image_blur)
-							normal_list[1] += 1
-							target.append(token)
-					## Flip and Random Rotate 
-					if hflip and (index in sample[:, 0]):
-						image_flip = np.fliplr(image)
-						sample_index = list(sample[:, 0]).index(index)
-						if sample[sample_index, 1] == 2:
-							cv2.imwrite("{:s}/h_{:s}".format(t_path, itr_file), image_flip)
-							is_testing = True
-							amount_list[2] += 1
-						else:
+						if hflip:
+							image_flip = np.fliplr(image)
 							cv2.imwrite("{:s}/h_{:s}".format(x_path, itr_file), image_flip)
 							normal_list[2] += 1
 							target.append(token)
-					elif hflip:
-						image_flip = np.fliplr(image)
-						cv2.imwrite("{:s}/h_{:s}".format(x_path, itr_file), image_flip)
-						normal_list[2] += 1
-						target.append(token)
-					#
+
 					##if rotate and (index in sample[:, 0]):
 					##  image_flip = np.rot90(image, k=2)
 					##  sample_index = list(sample[:, 0]).index(index)
@@ -503,15 +342,6 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 					##  cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image_flip)
 					##  normal_list[3] += 1
 					##  target.append([age_index + gen_index * 4])
-
-					# Append the target to the list
-					if is_testing:
-						testing_targ.append(token)
-						#for itr in range(sum(mode_info) - 1):
-						#	target.append(token)
-					#else:
-					#	for itr in range(sum(mode_info)):
-					#		target.append(token)
 				else: 
 					continue
 			# Append information for each class to the list
@@ -532,27 +362,7 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 								   'Testing' , 'Te_Normal', 'Te_Blur', 'Te_hflip', 
 								   'img_size'])
 	df.to_csv('../processed_amount.csv', index=False)
-
-def evaluate_result(prediction, target, numClass):
-	numData = len(prediction)
-	err = [0] * numClass
-	result = [0] * numData
-	for itr in range(numData):
-		if prediction[itr] != target[itr]:
-			err[target[itr] - 1] += 1
-			result[itr] = 1
-	
-	print "Error rate: {:.2f}% ({:4d}/{:4d})" \
-		  .format(100.0 * sum(err) / numData, \
-				  sum(err), numData)
-	
-	info_str = " - "
-	for itr in range(numClass):
-		if itr != numClass - 1:
-			info_str += "Class{:2d}: {:3d}, ".format(itr + 1, err[itr])
-		else:
-			info_str += "Class{:2d}: {:3d}".format(itr + 1, err[itr])
-	print info_str
+	print df
 
 # Debugging code
 def debug_face_classifier(file):
@@ -630,19 +440,6 @@ def debug_Data_Augmentation(blur=False, sigma=1.0, hflip=False, vflip=False, hvs
 	if hflip and vflip and not hvsplit:
 		cv2.imshow('rot 180', np.rot90(image, k=2))
 		cv2.imwrite("../rot2k.jpg", np.rot90(image, k=2))
-	
-	#if randbright:
-	#   to_brightest = 255 - image.max()
-	#   to_darkest   =  -1 * image.min()
-	#   print "Brightest: {:d}, To-the-Roof : {:d}".format(image.max(), to_brightest)
-	#   print "Darkest  : {:d}, To-the-Floor: {:d}".format(image.min(), to_darkest)
-	#   disturbance = random.randint(to_darkest, to_brightest)
-	#   print "Disturbance: {:d}".format(disturbance)
-	#   image = (image  -18).astype(np.uint8)
-	#   #print "Random Factor: {:1.3f}".format(disturb_factor)
-	#   #image = (image * disturb_factor).astype(np.uint8)
-	#   cv2.imshow('brighter', image)
-
 	cv2.waitKey(0)
 	cv2.destroyAllWindows() 
 

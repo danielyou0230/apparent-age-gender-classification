@@ -12,10 +12,10 @@ import cv2
 
 
 # Parameters
-#path_list = ['../X_data', '../T_data']
-path_list = ['../X_data', '../T_data'] # LBP path here
-#data_list = ["tfrecords/train.tfrecords", "tfrecords/test.tfrecords"]
-data_list = ["tfrecords/train_lbp.tfrecords", "tfrecords/test_lbp.tfrecords"]
+path_list = ['../X_data', '../T_data']
+lbp_path  = ['../X_data', '../T_data'] # LBP path here
+data_list = ["tfrecords/train.tfrecords", "tfrecords/test.tfrecords"]
+lbp_list  = ["tfrecords/train_lbp.tfrecords", "tfrecords/test_lbp.tfrecords"]
 age = ['child', 'young', 'adult', 'elder']
 gender = ['male', 'female']
 
@@ -56,6 +56,7 @@ def data_converter(path, tf_data, args):
 								"label"  : _int64_feature(class_label),
 								"img_raw": _bytes_feature(img_raw)
 							} ))
+
 						if not args.randomize:
 							if args.lbp:
 								converter.write(example)
@@ -98,5 +99,8 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	if not os.path.isdir('tfrecords'):
 		os.makedirs('tfrecords')
-	for idx, itr_path in enumerate(path_list):
-		data_converter(itr_path, data_list[idx], args)
+
+	input_path  = path_list if not args.lbp else lbp_path
+	output_name = data_list if not args.lbp else lbp_list
+	for idx, itr_path in enumerate(input_path):
+		data_converter(itr_path, output_name[idx], args)
