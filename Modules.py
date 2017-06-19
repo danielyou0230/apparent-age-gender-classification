@@ -106,15 +106,15 @@ def shape_to_np(shape, dtype="int"):
 	# return the list of (x, y)-coordinates
 	return coords
 
-def face_detect_classifier(image, face_cascade, file):
+def face_detect_classifier(image, face_cascade):
 	# Load image as greyscale
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	# Use OpenCV Classifier the find faces
 	cascade_faces = face_cascade.detectMultiScale(image, 
-												  scaleFactor=1.10,
+												  scaleFactor=1.07,
 												  minNeighbors=5)
-	for (x, y, w, h) in cascade_faces:
-		cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 3)
+	#for (x, y, w, h) in cascade_faces:
+	#	cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 3)
 
 	bFace = True if len(cascade_faces) != 0 else False
 
@@ -130,7 +130,6 @@ def face_detect_classifier(image, face_cascade, file):
 				if (w * h) > area:
 					area = w * h
 					face_idx = idx
-			
 			faces = cascade_faces[face_idx]
 		
 		# Single-Face: just return
@@ -138,12 +137,9 @@ def face_detect_classifier(image, face_cascade, file):
 			faces = cascade_faces[0]
 		
 		# Square out the face
-		x, y, w, h = faces
-		cv2.rectangle(image, (x,y), (x+w,y+h), (0, 0, 255), 3)
-
-	# Return empty coordinates if no faces detected
+		#x, y, w, h = faces
+		#cv2.rectangle(image, (x,y), (x+w,y+h), (0, 0, 255), 3)
 	else:
-		print "Classifier Failed: {:s}".format(file)
 		faces = list()
 	return bFace, faces
 
@@ -178,14 +174,15 @@ def face_landmark_Preliminary():
 	# Prepare for dlib facial landmark
 	detector = dlib.get_frontal_face_detector()
 	predictor = dlib.shape_predictor(dat_face_landmark)
-	#face_cascade = cv2.CascadeClassifier(xml_face_classifier)
+	face_cascade = cv2.CascadeClassifier(xml_face_classifier)
 
 	undetectLst = list()
 	#false_Lst = list()
 	max_size = [0, 0, 'null']
 	min_size = [500, 500, 'null']
 	tStart = time.time()
-
+	count = list()
+	cumulative = [0, 0]
 	for itr_age in age:
 		for itr_gender in gender:
 			curr_dir = "{:s}/{:s}/{:s}/".format(mainPath, itr_age, itr_gender)
@@ -203,10 +200,12 @@ def face_landmark_Preliminary():
 				bFace, faces = facial_landmark_detection(image, detector, predictor, file)
 				
 				if not bFace:
-					#print curr_dir + itr_file
-					undetectLst.append(curr_dir + itr_file)
-					not_detected += 1
-					continue
+					#bFace, faces = face_detect_classifier(image, face_cascade)
+					if not bFace:
+						print curr_dir + itr_file
+						undetectLst.append(curr_dir + itr_file)
+						not_detected += 1
+						continue
 				x, y, w, h = faces
 				
 				# Recording the max, min size of the crop images for rescaling
@@ -232,16 +231,24 @@ def face_landmark_Preliminary():
 				itr += 1 
 
 			print "{:s}: {:4d}/{:4d}".format(curr_dir, not_detected, numfile / 2)
+			count.append([curr_dir, not_detected, numfile / 2, 100.0 * not_detected / numfile * 2])
+			cumulative[0] += not_detected
+			cumulative[1] += numfile / 2
 			#print " - false detected: {:4d}/{:4d}".format(false_detect, numfile / 2)
 	
 	tEnd = time.time()
 	print "Time Elapse: {:.2f} sec".format(tEnd - tStart)
-
+	#result = np.vstack(count)
+	df = pandas.DataFrame(count)
+	df.columns = ['Path', 'Missed', 'Total Amt', 'Miss Rate']
+	print df
+	print "Result: {:d} / {:d}, {:2.2f}%"\
+	.format(cumulative[0], cumulative[1], 100.0 * cumulative[0] / cumulative[1])
 	print "max size: {:s}".format(max_size)
 	print "min size: {:s}".format(min_size)
 
-	df = pandas.DataFrame(undetectLst) 
-	df.to_csv('../dlib_undetected.csv', header=False, index=False)
+	#df = pandas.DataFrame(undetectLst) 
+	#df.to_csv('../dlib_undetected.csv', header=False, index=False)
 	#df = pandas.DataFrame(false_Lst)
 	#df.to_csv('../dlib_falsedetected.csv', header=False, index=False)
 
@@ -401,7 +408,8 @@ def debug_face_classifier(file):
 	
 	image = imutils.resize(image, width=500)
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	faces = face_cascade.detectMultiScale(image, 1.20, 5, minSize = (50, 50))
+	faces = face_cascade.detectMultiScale(image, 1.07, 3)
+	print faces
 	for (x, y, w, h) in faces:
 		cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 2)
 		#roi_gray = gray[y:y+h, x:x+w]
@@ -482,6 +490,11 @@ def debug_analyse_image_texture(file, sigma=1.0):
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 ##########################################
+
+def manual_exclusion():
+	black_list = [
+
+	]
 #debug_face_classifier('Dataset/young/male/178.jpg')
 #file_list = ['Dataset/adult/female/79.jpg', 
 #            'Dataset/elder/male/26.jpg', 
@@ -501,13 +514,35 @@ def debug_analyse_image_texture(file, sigma=1.0):
 #                       randbright=True)
 #debug_analyse_image_texture('150.jpg', sigma=7)
 
+fail_lst = ['Dataset/young/female/136.jpg', 'Dataset/young/female/185.jpg',
+			'Dataset/young/female/389.jpg', 'Dataset/young/female/369.jpg']
+
 if __name__ == "__main__":
-	#parser = argparse.ArgumentParser()
-	#parser.add_argument("-v", "--verbosity", action="count",
-	#					help="show info in each directory")
-	#face_landmark_Preliminary()
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-c", "--capture", action="store_true", 
+						help="capture faces in the images")
+	parser.add_argument("-a", "--augmentation", action="store_true",
+						help="apply data augmentation on the faces")
+	parser.add_argument("-dl", "--debugLandmark", action="store_true",
+						help="facelandmark debug mode")
+	parser.add_argument("-dc", "--debugClassifier", action="store_true",
+						help="facelandmark debug mode")
+	args = parser.parse_args()
+
+	if args.debugLandmark:
+		debug_face_landmark('Dataset/elder/female/213.jpg')
+	if args.debugClassifier:
+		for itr in fail_lst:
+			debug_face_classifier(itr)
+	if args.capture:
+		print "Capturing faces in the images..."
+		face_landmark_Preliminary()
+	if args.exclude:
+		manual_exclusion()
 	#export2csv(blur=True, sigma=2.0, hflip=True, vflip=False, \
 	#          hvsplit=True, img_size=100, sample_size=100)
-	data_augment(blur=True, sigma=[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0], \
+	if args.augmentation:
+		print "Applying data augmentation on the faces..."
+		data_augment(blur=True, sigma=[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0], \
 				 hflip=True, rotate=False, img_size=128, sample_size=100)
 	#debug_analyse_image_texture(file='Dataset/adult/female/79.jpg', sigma=1.0)
