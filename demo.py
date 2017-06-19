@@ -4,6 +4,12 @@ import os
 from PIL import Image
 import Modules as util
 
+def _int64_feature(value):
+	return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+
+def _bytes_feature(value):
+	return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
 def demo_data_converter(path, tf_data):
 	numlist = []
 	buff = []
@@ -12,7 +18,6 @@ def demo_data_converter(path, tf_data):
 							for itr_dir in os.listdir(path))
 		print "{:s}: {:4d} files".format(path, n_file)
 		for itr_file in os.listdir(path):
-			print "{:s}: {:4d} files".format(path, n_file)
 			if itr_file.endswith('.jpg'):
 				img_path = path + itr_file
 				img = Image.open(img_path, 0)
@@ -25,6 +30,8 @@ def demo_data_converter(path, tf_data):
 					"label"  : _int64_feature(0),
 					"img_raw": _bytes_feature(img_raw)
 				} ))
+			else:
+				continue
 
 def run_model(args):
 	print "hi"

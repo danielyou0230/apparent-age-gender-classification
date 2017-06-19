@@ -6,6 +6,9 @@ import argparse
 
 norm = ["tfrecords/train.tfrecords", "tfrecords/test.tfrecords"]
 lbp  = ["tfrecords/train_lbp.tfrecords", "tfrecords/test_lbp.tfrecords"]
+
+n_classes = 8
+os.environ.setdefault('CUDA_VISIBLE_DEVICES', '1')
 # Parameters
 ##################################################################
 def read_and_decode(filename, img_size=128, depth=1):
@@ -49,7 +52,7 @@ def run_model(args):
 	depth = 1
 	# Parameters
 	learning_rate = 0.007
-	training_iters = 280100
+	training_iters = 1000100
 	batch_size = 25
 	display_step = 10
 	
@@ -93,7 +96,7 @@ def run_model(args):
 	conv2 = tf.layers.conv2d(
 		  inputs=pool1,
 		  filters=kernel_units[2],
-		  kernel_size=[5, 5],
+		  kernel_size=[4, 4],
 		  padding="same",
 		  activation=tf.nn.relu,
 		  use_bias=True,
@@ -107,7 +110,7 @@ def run_model(args):
 	conv3 = tf.layers.conv2d(
 		  inputs=pool2,
 		  filters=kernel_units[3],
-		  kernel_size=[5, 5],
+		  kernel_size=[3, 3],
 		  padding="same",
 		  activation=tf.nn.relu,
 		  use_bias=True,
@@ -121,7 +124,7 @@ def run_model(args):
 	conv4 = tf.layers.conv2d(
 		  inputs=pool3,
 		  filters=kernel_units[4],
-		  kernel_size=[5, 5],
+		  kernel_size=[2, 2],
 		  padding="same",
 		  activation=tf.nn.relu,
 		  use_bias=True,
@@ -135,7 +138,7 @@ def run_model(args):
 	conv5 = tf.layers.conv2d(
 		  inputs=pool4,
 		  filters=kernel_units[5],
-		  kernel_size=[5, 5],
+		  kernel_size=[2, 2],
 		  padding="same",
 		  activation=tf.nn.relu,
 		  use_bias=True,
@@ -160,6 +163,7 @@ def run_model(args):
 	# Define loss and optimizer
 	cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
 	optimizer = tf.train.ProximalAdagradOptimizer(learning_rate=learning_rate).minimize(cost)
+	#optimizer = tf.train.ProximalAdagradOptimizer(learning_rate=learning_rate).minimize(cost)
 	#optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 	
 	# Evaluate model
@@ -173,7 +177,7 @@ def run_model(args):
 													min_after_dequeue=300,
 													allow_smaller_final_batch=True)
 	# Load testing data
-	t_img, t_label = read_and_decode(filep[1])
+	t_img, t_label = read_and_decode(file[1])
 	test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
 												 batch_size=800, capacity=800,
 												 min_after_dequeue=10,
@@ -183,6 +187,9 @@ def run_model(args):
 	tf.summary.scalar("Accuracy:", accuracy)
 	merged = tf.summary.merge_all()
 	
+	# Saver
+	saver = tf.train.Saver()
+
 	# Initializing the variables
 	init = tf.global_variables_initializer()
 	config = tf.ConfigProto()
@@ -217,7 +224,7 @@ def run_model(args):
 					  .format(step * batch_size, loss, acc * 100)
 				#  .format(step * batch_size, loss, acc * 100)
 				delta_loss = prev_loss - loss
-				if acc > 0.95 and abs(delta_loss) < 0.01 and step > 100:
+				if acc > 0.95 and abs(delta_loss) < 0.001 and step > 100:
 					stagnant += 1
 					if stagnant == 2:
 						print "Two consecutive losses change < 0.01, stopping..."
@@ -225,6 +232,20 @@ def run_model(args):
 				else:
 					prev_loss = loss
 					stagnant = 0
+
+				if step * batch_size % 10000 == 0:
+					batch_tx, batch_ly = sess.run([test_img, test_lbl])
+					pred_class = sess.run(tf.argmax(pred, 1), \
+										  feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
+					pred_class = list(pred_class)
+					print "0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
+								  .format(pred_class.count(0), pred_class.count(1), \
+										  pred_class.count(2), pred_class.count(3), \
+										  pred_class.count(4), pred_class.count(5), \
+										  pred_class.count(6), pred_class.count(7) )
+					validation_acc = sess.run(accuracy, \
+									 feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
+					print "Testing Accuracy: {:.3f}%".format(validation_acc * 100.)
 			step += 1
 		print "Optimization Finished!"
 		# 
@@ -234,7 +255,7 @@ def run_model(args):
 		pred_class = list(pred_class)
 		print "0: {:d}, 1: {:d}, 2: {:d}, 3: {:d}, 4: {:d}, 5: {:d}, 6: {:d}, 7: {:d}" \
 					  .format(pred_class.count(0), pred_class.count(1), \
-					          pred_class.count(2), pred_class.count(3), \
+							  pred_class.count(2), pred_class.count(3), \
 							  pred_class.count(4), pred_class.count(5), \
 							  pred_class.count(6), pred_class.count(7) )
 	

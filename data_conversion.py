@@ -51,7 +51,8 @@ def data_converter(path, tf_data, args):
 
 						if args.lbp:
 							L = LBP(img_path,2,8)
-							img =  Image.fromarray(L)
+							img =  Image.fromarray(L,mode = 'L')
+							#print img
 							img_raw = img.tobytes()
 							# stream data to the converter
 							example = tf.train.Example(features=tf.train.Features(
@@ -63,6 +64,7 @@ def data_converter(path, tf_data, args):
 						
 						else:
 							img = Image.open(img_path)
+							#print img
 							img_raw = img.tobytes()
 							# stream data to the converter
 							example = tf.train.Example(features=tf.train.Features(
@@ -78,7 +80,7 @@ def data_converter(path, tf_data, args):
 							buff.append(example.SerializeToString())
 					else:
 						continue
-		if args.randomize:
+		if args.randomize or args.lbp:
 			index = random.sample(xrange(len(buff)), len(buff))
 			for itr in index:
 				converter.write(buff[itr])

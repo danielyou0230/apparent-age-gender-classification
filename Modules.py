@@ -200,7 +200,7 @@ def face_landmark_Preliminary():
 				bFace, faces = facial_landmark_detection(image, detector, predictor, file)
 				
 				if not bFace:
-					#bFace, faces = face_detect_classifier(image, face_cascade)
+					bFace, faces = face_detect_classifier(image, face_cascade)
 					if not bFace:
 						print curr_dir + itr_file
 						undetectLst.append(curr_dir + itr_file)
@@ -270,17 +270,19 @@ def face_extraction(path):
 			bFace, faces = facial_landmark_detection(image, detector, predictor, file)
 			
 			if not bFace:
-				#print file
-				undetectLst.append(file)
-				not_detected += 1
-				continue
+				bFace, faces = face_detect_classifier(image, face_cascade)
+				if not bFace:
+					print file
+					undetectLst.append(file)
+					not_detected += 1
+					continue
 			x, y, w, h = faces
 			crop_img = image[y:y + h, x:x + w]
 			cv2.imwrite("{:s}_faces/{:s}".format(path_str, itr_file), crop_img)
 			itr += 1 
 		else:
 			continue
-	print "{:s}: {:4d}/{:4d}".format(path_str, not_detected, numfile / 2)
+	print "{:s}: {:4d} / {:4d}".format(path_str, not_detected, numfile / 2)
 
 def generate_mode(amount, sample_size, mode):
 	# Generate the index of the image and the corresponding augmentation mode
@@ -492,9 +494,12 @@ def debug_analyse_image_texture(file, sigma=1.0):
 ##########################################
 
 def manual_exclusion():
-	black_list = [
+	blacklist = [line.rstrip('\n') for line in open("exclude_list.txt", 'r')]
+	for item in blacklist:
+		if item.endswith('.jpg'):
+			print "removing {:s}".format(item)
+			os.remove(item)
 
-	]
 #debug_face_classifier('Dataset/young/male/178.jpg')
 #file_list = ['Dataset/adult/female/79.jpg', 
 #            'Dataset/elder/male/26.jpg', 
@@ -523,6 +528,8 @@ if __name__ == "__main__":
 						help="capture faces in the images")
 	parser.add_argument("-a", "--augmentation", action="store_true",
 						help="apply data augmentation on the faces")
+	parser.add_argument("-e", "--exclusion", action="store_true", 
+						help="Manually remove missed files in the list.")
 	parser.add_argument("-dl", "--debugLandmark", action="store_true",
 						help="facelandmark debug mode")
 	parser.add_argument("-dc", "--debugClassifier", action="store_true",
@@ -537,7 +544,8 @@ if __name__ == "__main__":
 	if args.capture:
 		print "Capturing faces in the images..."
 		face_landmark_Preliminary()
-	if args.exclude:
+	if args.exclusion:
+		print "Excluding files listed in \"exclude_list.txt\""
 		manual_exclusion()
 	#export2csv(blur=True, sigma=2.0, hflip=True, vflip=False, \
 	#          hvsplit=True, img_size=100, sample_size=100)
