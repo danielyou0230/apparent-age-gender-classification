@@ -302,8 +302,16 @@ def clear_cache():
 			cleanup_workspace(x_path) if os.path.isdir(x_path) else os.makedirs(x_path)
 			cleanup_workspace(t_path) if os.path.isdir(t_path) else os.makedirs(t_path)
 
+def getAllAmount():
+	n_orgData = list()
+	for (age_index, itr_age) in enumerate(age):
+		for (gen_index, itr_gender) in enumerate(gender):
+			curr_dir = "{:s}/{:s}/{:s}/".format(prepPath, itr_age, itr_gender)
+			n_orgData.append(get_dataInfo(curr_dir))
+	print n_orgData
+
 def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False, 
-				 img_size=100, sample_size=100):
+				 img_size=100, sample_size=100, n_rand_angle=3):
 	# Export and resize the image to cvs files with data augmentation included
 	data = list()
 	target = list()
@@ -319,6 +327,7 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 			continue
 	
 	clear_cache()
+	getAllAmount()
 	# Load and distribute the data to the corresponding group
 	for (age_index, itr_age) in enumerate(age):
 		for (gen_index, itr_gender) in enumerate(gender):
@@ -331,13 +340,12 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 			cleanup_workspace(t_path) if os.path.isdir(t_path) else os.makedirs(t_path)
 
 			numfile = get_dataInfo(curr_dir)
-			#print "{:s}: {:4d}, {:4d}".format(curr_dir, numfile, 
-			#								  numfile * sum(mode_info) - sample_size)
 			# Generate the index and the mode of the image to be testing data
+			#sample = generate_mode(numfile, sample_size, mode)
 			sample = generate_mode(numfile, sample_size, mode)
 			# Keep track of the amount of testing data for each data augmentation
-			amount_list = [0] * sum(mode_info)
-			normal_list = [0] * sum(mode_info)
+			testAmt = 0
+			tr_list = [0] * len(mode_info)
 			for index, itr_file in enumerate(os.listdir(curr_dir)):
 				is_testing = False
 				if itr_file.endswith('.jpg'):
@@ -347,48 +355,39 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 					if index in sample[:, 0]:
 						cv2.imwrite("{:s}/{:s}".format(t_path, itr_file), image)
 						#is_testing = True
-						amount_list[0] += 1
+						testAmt += 1
 						testing_targ.append(token)
 					else:
 						cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image)
-						normal_list[0] += 1
+						tr_list[0] += 1
 						if blur:
 							for itr_sigma in sigma:
-								trainfile = "{:s}/b_{:1.1f}_{:s}".format(x_path, itr_sigma, itr_file)
+								file_name = "{:s}/b_{:1.1f}_{:s}".format(x_path, itr_sigma, itr_file)
 								image_blur = gaussian_filter(input=image, sigma=itr_sigma)
-								cv2.imwrite(trainfile, image_blur)
-								normal_list[1] += 1
+								cv2.imwrite(file_name, image_blur)
+								tr_list[1] += 1
 								target.append(token)
 						if hflip:
 							image_flip = np.fliplr(image)
 							cv2.imwrite("{:s}/h_{:s}".format(x_path, itr_file), image_flip)
-							normal_list[2] += 1
+							tr_list[2] += 1
 							target.append(token)
 
-					##if rotate and (index in sample[:, 0]):
-					##  image_flip = np.rot90(image, k=2)
-					##  sample_index = list(sample[:, 0]).index(index)
-					##  if sample[sample_index, 1] == 3:
-					##      cv2.imwrite("{:s}/{:s}".format(t_path, itr_file), image_flip)
-					##      is_testing = True
-					##      amount_list[3] += 1
-					##  else:
-					##      cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image_flip)
-					##      normal_list[3] += 1
-					##      target.append([age_index + gen_index * 4])
-					##elif rotate:
-					##  image_flip = np.rot90(image, k=2)
-					##  cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image_flip)
-					##  normal_list[3] += 1
-					##  target.append([age_index + gen_index * 4])
+						if rotate:
+							for itr in range(n_rand_angle):
+								angle = random.randint(0, 20)
+								image_rot = imutils.rotate(image, angle)
+								file_name = "{:s}/r_{:2d}_{:s}".format(x_path, angle, itr_file)
+								cv2.imwrite(file_name, image_rot)
+								tr_list[3] += 1
+								target.append(token)
 				else: 
 					continue
 			# Append information for each class to the list
-			#print normal_list
+			#print tr_list
 			amount.append([itr_gender, itr_age, age_index + gen_index * 4, numfile, 
-					  sum(normal_list), normal_list[0], normal_list[1], normal_list[2], 
-					  sum(amount_list), amount_list[0], amount_list[1], amount_list[2], 
-					  "{:d}x{:d}".format(img_size, img_size)])
+					  sum(tr_list), tr_list[0], tr_list[1], tr_list[2], tr_list[3],
+					  testAmt, "{:d}x{:d}".format(img_size, img_size)])
 
 	df = pandas.DataFrame(np.reshape(np.ravel(target), (len(target), 1)))
 	print np.ravel(target).shape
@@ -397,9 +396,8 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 	df.to_csv("{:s}/T_target.csv".format(tPath), header=False, index=False)
 	df = pandas.DataFrame(np.vstack(amount), 
 						  columns=['Gender', 'Age', 'Class', 'Org_Amt',
-								   'Training', 'Tr_Normal', 'Tr_Blur', 'Tr_hflip', 
-								   'Testing' , 'Te_Normal', 'Te_Blur', 'Te_hflip', 
-								   'img_size'])
+								   'Training', 'Tr_Normal', 'Tr_Blur', 'Tr_hflip', 'Tr_rotate', 
+								   'Testing' , 'img_size'])
 	df.to_csv('../processed_amount.csv', index=False)
 	print df
 
@@ -551,6 +549,6 @@ if __name__ == "__main__":
 	#          hvsplit=True, img_size=100, sample_size=100)
 	if args.augmentation:
 		print "Applying data augmentation on the faces..."
-		data_augment(blur=True, sigma=[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0], \
-				 hflip=True, rotate=False, img_size=128, sample_size=100)
+		data_augment(blur=True, sigma=[2.0, 2.5, 3.0, 3.5, 4.0], \
+				 hflip=True, rotate=True, img_size=128, sample_size=100)
 	#debug_analyse_image_texture(file='Dataset/adult/female/79.jpg', sigma=1.0)

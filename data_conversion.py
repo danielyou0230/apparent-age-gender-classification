@@ -11,7 +11,6 @@ from skimage.feature import local_binary_pattern
 import cv2 
 import numpy as np
 
-
 eps=1e-7
 
 # Parameters
@@ -44,15 +43,12 @@ def data_converter(path, tf_data, args):
 				if args.verbosity:
 					print "{:s}: {:4d} files".format(current_path, n_file)
 				for itr_file in os.listdir(current_path):
-					print "{:s}: {:4d} files".format(current_path, n_file)
-
 					if itr_file.endswith('.jpg'):
 						img_path = current_path + itr_file
 
 						if args.lbp:
 							L = LBP(img_path,2,8)
 							img =  Image.fromarray(L,mode = 'L')
-							#print img
 							img_raw = img.tobytes()
 							# stream data to the converter
 							example = tf.train.Example(features=tf.train.Features(
@@ -64,7 +60,6 @@ def data_converter(path, tf_data, args):
 						
 						else:
 							img = Image.open(img_path)
-							#print img
 							img_raw = img.tobytes()
 							# stream data to the converter
 							example = tf.train.Example(features=tf.train.Features(
@@ -80,7 +75,7 @@ def data_converter(path, tf_data, args):
 							buff.append(example.SerializeToString())
 					else:
 						continue
-		if args.randomize or args.lbp:
+		if args.randomize:
 			index = random.sample(xrange(len(buff)), len(buff))
 			for itr in index:
 				converter.write(buff[itr])

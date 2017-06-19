@@ -91,7 +91,7 @@ def run_model(args):
 		  name='conv1' ) 
 	
 	pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2, name='pool1')
-	pool1 = tf.nn.dropout(pool1, keep_prob) 
+	#pool1 = tf.nn.dropout(pool1, keep_prob) 
 	
 	conv2 = tf.layers.conv2d(
 		  inputs=pool1,
@@ -105,7 +105,7 @@ def run_model(args):
 		  name='conv2') 
 	
 	pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, name='pool2')
-	pool2 = tf.nn.dropout(pool2, keep_prob) 
+	#pool2 = tf.nn.dropout(pool2, keep_prob) 
 	
 	conv3 = tf.layers.conv2d(
 		  inputs=pool2,
@@ -119,7 +119,7 @@ def run_model(args):
 		  name='conv3' ) 
 	
 	pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2, name='pool3')
-	pool3 = tf.nn.dropout(pool3, keep_prob) 
+	#pool3 = tf.nn.dropout(pool3, keep_prob) 
 	
 	conv4 = tf.layers.conv2d(
 		  inputs=pool3,
@@ -133,7 +133,7 @@ def run_model(args):
 		  name='conv4' ) 
 	
 	pool4 = tf.layers.max_pooling2d(inputs=conv4, pool_size=[2, 2], strides=2, name='pool4')
-	pool4 = tf.nn.dropout(pool4, keep_prob) 
+	#pool4 = tf.nn.dropout(pool4, keep_prob) 
 	
 	conv5 = tf.layers.conv2d(
 		  inputs=pool4,
@@ -147,7 +147,7 @@ def run_model(args):
 		  name='conv5' ) 
 	
 	pool5 = tf.layers.max_pooling2d(inputs=conv5, pool_size=[2, 2], strides=2, name='pool5')
-	pool5 = tf.nn.dropout(pool5, keep_prob) 
+	#pool5 = tf.nn.dropout(pool5, keep_prob) 
 	
 	# Dense Layer
 	flatten = tf.reshape(pool5, [-1, n_connected * kernel_units[5]]) 
@@ -224,14 +224,14 @@ def run_model(args):
 					  .format(step * batch_size, loss, acc * 100)
 				#  .format(step * batch_size, loss, acc * 100)
 				delta_loss = prev_loss - loss
-				if acc > 0.95 and abs(delta_loss) < 0.001 and step > 100:
-					stagnant += 1
-					if stagnant == 2:
-						print "Two consecutive losses change < 0.01, stopping..."
-						break
-				else:
-					prev_loss = loss
-					stagnant = 0
+				#if acc > 0.95 and abs(delta_loss) < 0.001 and step > 100:
+				#	stagnant += 1
+				#	if stagnant == 2:
+				#		print "Two consecutive losses change < 0.01, stopping..."
+				#		break
+				#else:
+				#	prev_loss = loss
+				#	stagnant = 0
 
 				if step * batch_size % 10000 == 0:
 					batch_tx, batch_ly = sess.run([test_img, test_lbl])
