@@ -52,7 +52,7 @@ def run_model(args):
 	depth = 1
 	# Parameters
 	learning_rate = 0.007
-	training_iters = 1000100
+	training_iters = 2000100
 	batch_size = 25
 	display_step = 10
 	
@@ -236,7 +236,7 @@ def run_model(args):
 		validation_acc = sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
 		print "Testing Accuracy: {:.3f}%".format(validation_acc * 100.)
 		# Save model 
-		save_ckpt = saver.save(sess, "model.ckpt")
+		save_ckpt = saver.save(sess, "model2M.ckpt")
 		print "Model saved in file: {:s}".format(save_ckpt)
 		coord.request_stop()
 		coord.join(threads)
