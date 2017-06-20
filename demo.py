@@ -22,7 +22,7 @@ def demo_data_converter(path, tf_data, selfeval):
 	buff = []
 	idx = 0
 	if selfeval:
-		raw_target = pd.read_csv('Testing/T.csv', header=None)
+		raw_target = pd.read_csv('../Testing/T.csv', header=None)
 		target = raw_target.as_matrix()
 		target = list(target.ravel())
 
@@ -242,7 +242,7 @@ def run_model(args):
 	if args.selfeval:
 		print "Self-evaluating mode:"
 		score = 0
-		raw_target = pd.read_csv('Testing/T.csv', header=None)
+		raw_target = pd.read_csv('../Testing/T.csv', header=None)
 		target = raw_target.as_matrix()
 		target = list(target.ravel())
 		for idx, itr in enumerate(target):
