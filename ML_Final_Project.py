@@ -53,7 +53,7 @@ def run_model(args):
 	# Parameters
 	learning_rate = 0.007
 	training_iters = 1000100
-	batch_size = 50
+	batch_size = 25
 	display_step = 10
 	
 	# Network Parameters
@@ -151,6 +151,7 @@ def run_model(args):
 	
 	# Dense Layer
 	flatten = tf.reshape(pool5, [-1, n_connected * kernel_units[5]]) 
+	#flatten = tf.reshape(pool4, [-1, n_connected * 4 * kernel_units[4]]) 
 	dense = tf.layers.dense(
 			inputs=flatten, 
 			units=kernel_units[6], 
@@ -182,13 +183,13 @@ def run_model(args):
 	img, label = read_and_decode(file[0])
 	batch_img, batch_label = tf.train.shuffle_batch([img, label],
 													batch_size=batch_size, capacity=1000,
-													min_after_dequeue=300,
+													min_after_dequeue=100,
 													allow_smaller_final_batch=True)
 	# Load testing data
 	t_img, t_label = read_and_decode(file[1])
 	test_img, test_lbl = tf.train.shuffle_batch([t_img, t_label],
 												 batch_size=800, capacity=800,
-												 min_after_dequeue=10,
+												 min_after_dequeue=0,
 												 allow_smaller_final_batch=True)
 	
 	# TensorBoard
@@ -200,12 +201,12 @@ def run_model(args):
 
 	# Initializing the variables
 	init = tf.global_variables_initializer()
-	config = tf.ConfigProto()
-	config.gpu_options.allow_growth=True
+	#config = tf.ConfigProto()
+	#config.gpu_options.allow_growth=True
 	# Launch the graph
 	
 	with tf.Session() as sess:
-		sess = tf.Session(config=config)
+		#sess = tf.Session(config=config)
 		writer = tf.summary.FileWriter('board/', graph=sess.graph)
 		sess.run(init)
 		threads = tf.train.start_queue_runners(sess=sess)

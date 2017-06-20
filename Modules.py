@@ -293,6 +293,13 @@ def generate_mode(amount, sample_size, mode):
 	sample = sample[sample[:, 0].argsort()]
 	return sample
 
+def generate_index(amount, sample_size, trainsize):
+	# Generate the index of the image and the corresponding augmentation mode
+	sample_list = random.sample(xrange(amount), sample_size + trainsize)
+	train = sample_list[ :trainsize]
+	test  = sample_list[trainsize: ]
+	return train, test
+
 def clear_cache():
 	for (age_index, itr_age) in enumerate(age):
 		for (gen_index, itr_gender) in enumerate(gender):
@@ -308,7 +315,8 @@ def getAllAmount():
 		for (gen_index, itr_gender) in enumerate(gender):
 			curr_dir = "{:s}/{:s}/{:s}/".format(prepPath, itr_age, itr_gender)
 			n_orgData.append(get_dataInfo(curr_dir))
-	print n_orgData
+	#print n_orgData
+	return np.array(n_orgData)
 
 def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False, 
 				 img_size=100, sample_size=100, n_rand_angle=3):
@@ -327,34 +335,75 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 			continue
 	
 	clear_cache()
-	all_list = getAllAmount()
+	#all_list = getAllAmount()
+	#print all_list.min()
+	#trainsize = all_list.min() - sample_size
 	# Load and distribute the data to the corresponding group
 	for (age_index, itr_age) in enumerate(age):
 		for (gen_index, itr_gender) in enumerate(gender):
 			curr_dir = "{:s}/{:s}/{:s}/".format(prepPath, itr_age, itr_gender)
 			x_path = "{:s}/{:s}/{:s}".format(xPath, itr_age, itr_gender)
 			t_path = "{:s}/{:s}/{:s}".format(tPath, itr_age, itr_gender)
-			
+			token = [age_index + gen_index * 4]
+
 			# If the path exist, clear previous work, otherwise create the path
 			cleanup_workspace(x_path) if os.path.isdir(x_path) else os.makedirs(x_path)
 			cleanup_workspace(t_path) if os.path.isdir(t_path) else os.makedirs(t_path)
 
 			numfile = get_dataInfo(curr_dir)
 			# Generate the index and the mode of the image to be testing data
-			#sample = generate_mode(numfile, sample_size, mode)
+			#train, test = generate_index(numfile, sample_size, trainsize)
 			sample = generate_mode(numfile, sample_size, mode)
 			# Keep track of the amount of testing data for each data augmentation
 			testAmt = 0
 			tr_list = [0] * len(mode_info)
+			file_list = os.listdir(curr_dir)
+			#for index in train:
+			#	if file_list[index].endswith('.jpg'):
+			#		itr_file = file_list[index]
+			#		image = cv2.imread(curr_dir + itr_file, 0)
+			#		image = cv2.resize(image, (img_size, img_size))
+			#		cv2.imwrite("{:s}/{:s}".format(x_path, itr_file), image)
+			#		tr_list[0] += 1
+			#		if blur:
+			#			for itr_sigma in sigma:
+			#				file_name = "{:s}/b_{:1.1f}_{:s}".format(x_path, itr_sigma, itr_file)
+			#				image_blur = gaussian_filter(input=image, sigma=itr_sigma)
+			#				cv2.imwrite(file_name, image_blur)
+			#				tr_list[1] += 1
+			#				target.append(token)
+			#		if hflip:
+			#			image_flip = np.fliplr(image)
+			#			cv2.imwrite("{:s}/h_{:s}".format(x_path, itr_file), image_flip)
+			#			tr_list[2] += 1
+			#			target.append(token)
+			#		if rotate:
+			#			for itr in range(n_rand_angle):
+			#				angle = random.randint(0, 20)
+			#				image_rot = imutils.rotate(image, angle)
+			#				file_name = "{:s}/r_{:2d}_{:s}".format(x_path, angle, itr_file)
+			#				cv2.imwrite(file_name, image_rot)
+			#				tr_list[3] += 1
+			#				target.append(token)
+			#	else: 
+			#		continue
+			####
+			#for index in test:
+			#	if file_list[index].endswith('.jpg'):
+			#		itr_file = file_list[index]
+			#		image = cv2.imread(curr_dir + itr_file, 0)
+			#		image = cv2.resize(image, (img_size, img_size))
+			#		cv2.imwrite("{:s}/{:s}".format(t_path, itr_file), image)
+			#		testAmt += 1
+			#		testing_targ.append(token)
+			#	else: 
+			#		continue
 			for index, itr_file in enumerate(os.listdir(curr_dir)):
-				is_testing = False
 				if itr_file.endswith('.jpg'):
-					token = [age_index + gen_index * 4]
 					image = cv2.imread(curr_dir + itr_file, 0)
 					image = cv2.resize(image, (img_size, img_size))
 					if index in sample[:, 0]:
 						cv2.imwrite("{:s}/{:s}".format(t_path, itr_file), image)
-						#is_testing = True
 						testAmt += 1
 						testing_targ.append(token)
 					else:
@@ -372,7 +421,6 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 							cv2.imwrite("{:s}/h_{:s}".format(x_path, itr_file), image_flip)
 							tr_list[2] += 1
 							target.append(token)
-
 						if rotate:
 							for itr in range(n_rand_angle):
 								angle = random.randint(0, 20)
