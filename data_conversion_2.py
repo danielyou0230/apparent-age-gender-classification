@@ -48,16 +48,16 @@ def data_converter(path, tf_data, args):
 						print "{:s}: {:4d} files".format(current_path, n_file)
 
 						if args.lbp:
-							L = LBP(img_path,3,8)
-							img =  Image.fromarray(L,mode = 'L')
-							img_raw = img.tobytes()
-							# stream data to the converter
-							example = tf.train.Example(features=tf.train.Features(
-							feature=
-							{ 
-								"label"  : _int64_feature(class_label),
-								"img_raw": _bytes_feature(img_raw)
-							} ))
+							L = LBP(img_path,2,8)
+							#img =  Image.fromarray(L,mode = 'L')
+							#img_raw = img.tobytes()
+							## stream data to the converter
+							#example = tf.train.Example(features=tf.train.Features(
+							#feature=
+							#{ 
+							#	"label"  : _int64_feature(class_label),
+							#	"img_raw": _bytes_feature(img_raw)
+							#} ))
 						
 						else:
 							img = Image.open(img_path)
@@ -87,12 +87,12 @@ def LBP(train_image,radius, no_points):
 	im = cv2.imread(train_image)
 	im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 	lbp = local_binary_pattern(im_gray, no_points, radius, method='default')
-	#(hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0,(no_points*(no_points-1)+4)))
-	#hist = hist.astype("float")
-	#hist /= (hist.sum() + eps)
+	(hist, _) = np.histogram(lbp[0:63][0:63].ravel(), bins=np.arange(0,(no_points*(no_points-1)+4)))
+	hist = hist.astype("float")
+	hist /= (hist.sum() + eps)
 	#print hist.sum()
-	print lbp
-	return lbp
+	#print lbp
+	return hist
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()

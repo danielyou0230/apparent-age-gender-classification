@@ -327,7 +327,7 @@ def data_augment(blur=True, sigma=[2.0], hflip=True, rotate=False,
 			continue
 	
 	clear_cache()
-	getAllAmount()
+	all_list = getAllAmount()
 	# Load and distribute the data to the corresponding group
 	for (age_index, itr_age) in enumerate(age):
 		for (gen_index, itr_gender) in enumerate(gender):

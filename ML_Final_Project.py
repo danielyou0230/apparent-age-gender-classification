@@ -53,12 +53,12 @@ def run_model(args):
 	# Parameters
 	learning_rate = 0.007
 	training_iters = 1000100
-	batch_size = 25
+	batch_size = 50
 	display_step = 10
 	
 	# Network Parameters
 	n_input = pow(image_size, 2)
-	dropout = 0.7
+	dropout = 0.8
 	## Layer parameters
 	kernel_units = [depth, 64, 128, 256, 512, 1024, 2048]
 	kernel = [16, 16]
@@ -157,13 +157,21 @@ def run_model(args):
 			activation=tf.nn.relu,
 			name='dense' )
 	dense = tf.nn.dropout(dense, keep_prob) 
+	#fc1 = tf.contrib.layers.fully_connected(
+	#	  inputs=pool5, 
+	#	  num_outputs=kernel_units[6], 
+	#	  activation_fn=tf.nn.relu )
+	#
+	#pred = tf.contrib.layers.fully_connected(
+	#	  inputs=fc1, 
+	#	  num_outputs=n_classes, 
+	#	  activation_fn=tf.nn.relu )
 	# Output, class prediction
 	pred = tf.add(tf.matmul(dense, w_out), bias_d_out)
 	
 	# Define loss and optimizer
 	cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
 	optimizer = tf.train.ProximalAdagradOptimizer(learning_rate=learning_rate).minimize(cost)
-	#optimizer = tf.train.ProximalAdagradOptimizer(learning_rate=learning_rate).minimize(cost)
 	#optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 	
 	# Evaluate model
