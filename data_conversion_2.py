@@ -16,8 +16,8 @@ eps=1e-7
 # Parameters
 path_list = ['../X_data', '../T_data']
 lbp_path  = ['../X_data', '../T_data'] # LBP path here
-data_list = ["tfrecords/train.tfrecords", "tfrecords/test.tfrecords"]
-lbp_list  = ["tfrecords/train_lbp.tfrecords", "tfrecords/test_lbp.tfrecords"]
+data_list = ["tfrecords/train_age.tfrecords", "tfrecords/test_age.tfrecords"]
+lbp_list  = ["tfrecords/train_age.tfrecords", "tfrecords/test_age.tfrecords"]
 age = ['child', 'young', 'adult', 'elder']
 gender = ['male', 'female']
 
@@ -34,7 +34,8 @@ def data_converter(path, tf_data, args):
 	with tf.python_io.TFRecordWriter(tf_data) as converter:
 		for idx_age, itr_age in enumerate(age):
 			for idx_gender, itr_gender in enumerate(gender):
-				class_label = [idx_age + idx_gender * 4]
+				class_label = [idx_age]
+				print class_label
 				current_path = "{:s}/{:s}/{:s}/".format(path, itr_age, itr_gender)
 
 				n_file = sum(os.path.isfile(os.path.join(current_path, itr_dir)) \
@@ -42,11 +43,15 @@ def data_converter(path, tf_data, args):
 				numlist.append(n_file)
 				if args.verbosity:
 					print "{:s}: {:4d} files".format(current_path, n_file)
+				k = 0
 				for itr_file in os.listdir(current_path):
+					if k > 2500:
+						break
+					else:
+						k = k+1
 					if itr_file.endswith('.jpg'):
 						img_path = current_path + itr_file
-						print "{:s}: {:4d} files".format(current_path, n_file)
-
+						
 						if args.lbp:
 							L = LBP(img_path,2,8)
 							#img =  Image.fromarray(L,mode = 'L')

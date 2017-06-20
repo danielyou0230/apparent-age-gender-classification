@@ -63,19 +63,16 @@ def run_model(args):
 	kernel_units = [depth, 64, 128, 256, 512, 1024, 2048]
 	kernel = [16, 16]
 	# Fully connected inputs
-	#pool_factor = pow(2, len(kernel_size))
 	pool_factor = pow(2, 5)
 	n_connected = pow(image_size / pool_factor, 2)
 	
 	# tf Graph input
-	#x = tf.placeholder(tf.float32, [None, n_input])
 	x = tf.placeholder(tf.float32, [None, image_size, image_size, depth], name='input')
 	y = tf.placeholder(tf.float32, [None, n_classes], name='label')
 	keep_prob = tf.placeholder(tf.float32, name='keep_prob') 
 	
-	# Class Prediction
+	# Class Prediction (output layer)
 	w_out   = tf.Variable(tf.random_normal([kernel_units[6], n_classes])) 
-	
 	bias_d_out = tf.Variable(tf.random_normal([n_classes]))
 	
 	# Convolution Layer
@@ -89,9 +86,7 @@ def run_model(args):
 		  kernel_initializer=None,
 		  bias_initializer=tf.zeros_initializer(),
 		  name='conv1' ) 
-	
 	pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2, name='pool1')
-	#pool1 = tf.nn.dropout(pool1, keep_prob) 
 	
 	conv2 = tf.layers.conv2d(
 		  inputs=pool1,
@@ -103,9 +98,7 @@ def run_model(args):
 		  kernel_initializer=None,
 		  bias_initializer=tf.zeros_initializer() ,
 		  name='conv2') 
-	
 	pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, name='pool2')
-	#pool2 = tf.nn.dropout(pool2, keep_prob) 
 	
 	conv3 = tf.layers.conv2d(
 		  inputs=pool2,
@@ -117,9 +110,7 @@ def run_model(args):
 		  kernel_initializer=None,
 		  bias_initializer=tf.zeros_initializer(),
 		  name='conv3' ) 
-	
 	pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2, name='pool3')
-	#pool3 = tf.nn.dropout(pool3, keep_prob) 
 	
 	conv4 = tf.layers.conv2d(
 		  inputs=pool3,
@@ -131,9 +122,7 @@ def run_model(args):
 		  kernel_initializer=None,
 		  bias_initializer=tf.zeros_initializer(),
 		  name='conv4' ) 
-	
 	pool4 = tf.layers.max_pooling2d(inputs=conv4, pool_size=[2, 2], strides=2, name='pool4')
-	#pool4 = tf.nn.dropout(pool4, keep_prob) 
 	
 	conv5 = tf.layers.conv2d(
 		  inputs=pool4,
@@ -145,9 +134,7 @@ def run_model(args):
 		  kernel_initializer=None,
 		  bias_initializer=tf.zeros_initializer(),
 		  name='conv5' ) 
-	
 	pool5 = tf.layers.max_pooling2d(inputs=conv5, pool_size=[2, 2], strides=2, name='pool5')
-	#pool5 = tf.nn.dropout(pool5, keep_prob) 
 	
 	# Dense Layer
 	flatten = tf.reshape(pool5, [-1, n_connected * kernel_units[5]]) 
@@ -158,15 +145,6 @@ def run_model(args):
 			activation=tf.nn.relu,
 			name='dense' )
 	dense = tf.nn.dropout(dense, keep_prob) 
-	#fc1 = tf.contrib.layers.fully_connected(
-	#	  inputs=pool5, 
-	#	  num_outputs=kernel_units[6], 
-	#	  activation_fn=tf.nn.relu )
-	#
-	#pred = tf.contrib.layers.fully_connected(
-	#	  inputs=fc1, 
-	#	  num_outputs=n_classes, 
-	#	  activation_fn=tf.nn.relu )
 	# Output, class prediction
 	pred = tf.add(tf.matmul(dense, w_out), bias_d_out)
 	
@@ -198,24 +176,24 @@ def run_model(args):
 	
 	# Saver
 	saver = tf.train.Saver()
-
 	# Initializing the variables
 	init = tf.global_variables_initializer()
-	#config = tf.ConfigProto()
-	#config.gpu_options.allow_growth=True
+	config = tf.ConfigProto()
+	config.gpu_options.allow_growth=True
+
 	# Launch the graph
-	
 	with tf.Session() as sess:
 		#sess = tf.Session(config=config)
 		writer = tf.summary.FileWriter('board/', graph=sess.graph)
+		init = tf.global_variables_initializer()
 		sess.run(init)
-		threads = tf.train.start_queue_runners(sess=sess)
+		coord = tf.train.Coordinator()
+		threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 	
 		step = 1
 		prev_loss = 0.
 		stagnant = 0
 		# Keep training until reach max iterations
-		#while step <= 10:
 		while step * batch_size <= training_iters:
 			batch_xs, batch_ys = sess.run([batch_img, batch_label])
 			# Fit training using batch data
@@ -228,20 +206,9 @@ def run_model(args):
 				# Calculate batch loss
 				loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
 				#writer.add_summary(tfb_summary, step * batch_size)
-				#tf.summary.scalar("Loss:", loss)
 				print "Iter {:6d}, Minibatch Loss = {:.6f}, Training Accuracy = {:2.2f}%" \
 					  .format(step * batch_size, loss, acc * 100)
-				#  .format(step * batch_size, loss, acc * 100)
 				delta_loss = prev_loss - loss
-				#if acc > 0.95 and abs(delta_loss) < 0.001 and step > 100:
-				#	stagnant += 1
-				#	if stagnant == 2:
-				#		print "Two consecutive losses change < 0.01, stopping..."
-				#		break
-				#else:
-				#	prev_loss = loss
-				#	stagnant = 0
-
 				if step * batch_size % 10000 == 0:
 					batch_tx, batch_ly = sess.run([test_img, test_lbl])
 					pred_class = sess.run(tf.argmax(pred, 1), \
@@ -257,7 +224,6 @@ def run_model(args):
 					print "Testing Accuracy: {:.3f}%".format(validation_acc * 100.)
 			step += 1
 		print "Optimization Finished!"
-		# 
 		batch_tx, batch_ly = sess.run([test_img, test_lbl])
 		pred_class = sess.run(tf.argmax(pred, 1), \
 							  feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
@@ -267,18 +233,18 @@ def run_model(args):
 							  pred_class.count(2), pred_class.count(3), \
 							  pred_class.count(4), pred_class.count(5), \
 							  pred_class.count(6), pred_class.count(7) )
-	
 		validation_acc = sess.run(accuracy, feed_dict={x: batch_tx, y: batch_ly, keep_prob: 1.})
 		print "Testing Accuracy: {:.3f}%".format(validation_acc * 100.)
-	
 		# Save model 
 		save_ckpt = saver.save(sess, "model.ckpt")
 		print "Model saved in file: {:s}".format(save_ckpt)
+		coord.request_stop()
+		coord.join(threads)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-l", "--lbp", action="store_true", help="Use LBP data")
 	parser.add_argument("-n", "--normal", action="store_true", help="Use normal data")
-
+	
 	args = parser.parse_args()
 	run_model(args)

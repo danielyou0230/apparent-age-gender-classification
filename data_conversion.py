@@ -48,7 +48,6 @@ def data_converter(path, tf_data, args):
 						if args.lbp:
 							L = LBP(img_path,3,8)
 							img =  Image.fromarray(L,mode = 'L')
-							img.show()
 							img_raw = img.tobytes()
 							# stream data to the converter
 							example = tf.train.Example(features=tf.train.Features(

@@ -254,14 +254,19 @@ def face_landmark_Preliminary():
 
 def face_extraction(path):
 	path_str = path[:-1] if path.endswith('/') else path
+	output_dir = path_str + '_faces'
+	if not os.path.isdir(output_dir):
+		os.makedirs(output_dir)
+
 	detector = dlib.get_frontal_face_detector()
 	predictor = dlib.shape_predictor(dat_face_landmark)
+	face_cascade = cv2.CascadeClassifier(xml_face_classifier)
 	undetectLst = list()
 
 	numfile = get_dataInfo(path_str)
 	not_detected = 0
-	#false_detect = 0
-	
+	itr = 0
+
 	for itr_file in os.listdir(path_str):
 		if itr_file.endswith('.jpg'):
 			file = "{:s}/{:s}".format(path_str, itr_file)
@@ -275,14 +280,20 @@ def face_extraction(path):
 					print file
 					undetectLst.append(file)
 					not_detected += 1
+					image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+					cv2.imwrite("{:s}/{:s}".format(output_dir, itr_file), image)
 					continue
 			x, y, w, h = faces
 			crop_img = image[y:y + h, x:x + w]
-			cv2.imwrite("{:s}_faces/{:s}".format(path_str, itr_file), crop_img)
+			crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
+			cv2.imwrite("{:s}/{:s}".format(output_dir, itr_file), crop_img)
 			itr += 1 
 		else:
 			continue
-	print "{:s}: {:4d} / {:4d}".format(path_str, not_detected, numfile / 2)
+	total = itr + not_detected
+	print "{:s}: {:4d} of {:4d} file missed detected, detect rate {:2.2f}%"\
+	.format(path_str, not_detected, total, 100.0 * itr / total)
+	return undetectLst, total
 
 def generate_mode(amount, sample_size, mode):
 	# Generate the index of the image and the corresponding augmentation mode
