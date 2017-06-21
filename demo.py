@@ -77,15 +77,15 @@ def read_and_decode(filename, img_size=128, depth=1):
 
 def run_model(args):
 	## Extract faces
-	print "Detecting and extracting faces from images..."
-	undetectLst, total = util.face_extraction(args.demo_path)
-
+	#print "Detecting and extracting faces from images..."
+	#undetectLst, total = util.face_extraction(args.demo_path)
+	total = 640
 	## Convert to tfrecord
 	path = "{:s}_faces/".format(args.demo_path[:-1] if args.demo_path.endswith('/') \
 								else args.demo_path)
 
-	print "Converting face images to tfrecord..."
-	demo_data_converter(path, "demo.tfrecords", args.selfeval)
+	#print "Converting face images to tfrecord..."
+	#demo_data_converter(path, "demo.tfrecords", args.selfeval)
 
 	print "Initializing model..."
 	# CNN Layers and attributes
@@ -236,7 +236,7 @@ def run_model(args):
 	name_list = list()
 	for itr in os.listdir(path):
 		if itr.endswith('.jpg'):
-			name_list.append(itr)
+			name_list.append(itr[:-4])
 
 	# Self-evaluation mode
 	if args.selfeval:
@@ -257,8 +257,8 @@ def run_model(args):
 	pred_list = np.vstack(pred_list)
 	output_content = np.hstack([name_list, pred_list])
 	df = pd.DataFrame(output_content)
-	df.to_csv('Prediction.csv', header=False, index=False)
-	print "Done. Output file \"Prediction.csv\"" 
+	df.to_csv('Result.csv', header=False, index=False)
+	print "Done. Output file \"Result.csv\"" 
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
